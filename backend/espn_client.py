@@ -1,0 +1,134 @@
+"""ESPN Fantasy data access, normalized behind a provider-agnostic interface.
+
+`LeagueProvider` is the contract every downstream feature (Phase 2 tier
+board, Phase 3 start/sit logic, etc.) should code against. `ESPNProvider`
+is the only thing here that knows about espn-api's raw object shapes -
+adding Yahoo/Sleeper later means writing a new provider class, not
+touching anything that consumes this interface.
+"""
+from abc import ABC, abstractmethod
+from typing import Optional
+
+from . import config
+
+
+class LeagueProvider(ABC):
+    @abstractmethod
+    def get_roster(self, team_id: Optional[int] = None) -> dict:
+        ...
+
+    @abstractmethod
+    def get_standings(self) -> list:
+        ...
+
+    @abstractmethod
+    def get_matchups(self, week: Optional[int] = None) -> list:
+        ...
+
+    @abstractmethod
+    def get_transactions(self, size: int = 25) -> list:
+        ...
+
+    @abstractmethod
+    def get_free_agents(self, size: int = 50, position: Optional[str] = None) -> list:
+        ...
+
+
+class ESPNProvider(LeagueProvider):
+    def __init__(self, league_id: int, year: int, espn_s2: Optional[str] = None, swid: Optional[str] = None):
+        from espn_api.football import League
+
+        self._league = League(league_id=league_id, year=year, espn_s2=espn_s2, swid=swid)
+
+    def _team_by_id(self, team_id: int):
+        for team in self._league.teams:
+            if team.team_id == team_id:
+                return team
+        return None
+
+    @staticmethod
+    def _serialize_team(team) -> dict:
+        return {
+            "team_id": team.team_id,
+            "team_name": team.team_name,
+            "wins": team.wins,
+            "losses": team.losses,
+            "ties": team.ties,
+            "points_for": team.points_for,
+            "points_against": team.points_against,
+        }
+
+    @staticmethod
+    def _serialize_player(player) -> dict:
+        return {
+            "name": player.name,
+            "position": player.position,
+            "pro_team": player.proTeam,
+            "injury_status": player.injuryStatus,
+            "lineup_slot": player.lineupSlot,
+            "total_points": player.total_points,
+            "projected_total_points": player.projected_total_points,
+        }
+
+    def get_roster(self, team_id: Optional[int] = None) -> dict:
+        team = self._team_by_id(team_id) if team_id is not None else self._league.teams[0]
+        if team is None:
+            raise ValueError(f"No team found with id {team_id}")
+        data = self._serialize_team(team)
+        data["players"] = [self._serialize_player(p) for p in team.roster]
+        return data
+
+    def get_standings(self) -> list:
+        return [
+            {"rank": i + 1, **self._serialize_team(team)}
+            for i, team in enumerate(self._league.standings())
+        ]
+
+    def get_matchups(self, week: Optional[int] = None) -> list:
+        week = week or self._league.current_week
+        matchups = []
+        for box in self._league.box_scores(week):
+            matchups.append(
+                {
+                    "week": week,
+                    "home_team": box.home_team.team_name if box.home_team else "BYE",
+                    "home_score": box.home_score,
+                    "away_team": box.away_team.team_name if box.away_team else "BYE",
+                    "away_score": box.away_score,
+                    "is_playoff": box.is_playoff,
+                }
+            )
+        return matchups
+
+    def get_transactions(self, size: int = 25) -> list:
+        transactions = []
+        for activity in self._league.recent_activity(size=size):
+            for team, action, player, bid in activity.actions:
+                transactions.append(
+                    {
+                        "date": activity.date,
+                        "team": team.team_name if team else None,
+                        "action": action,
+                        "player": player.name if hasattr(player, "name") else str(player),
+                        "bid_amount": bid,
+                    }
+                )
+        return transactions
+
+    def get_free_agents(self, size: int = 50, position: Optional[str] = None) -> list:
+        return [self._serialize_player(p) for p in self._league.free_agents(size=size, position=position)]
+
+
+def build_provider() -> ESPNProvider:
+    """Constructs a provider from .env, or raises RuntimeError with a friendly message."""
+    if not config.is_configured():
+        raise RuntimeError(
+            "ESPN league not configured yet. Add LEAGUE_ID (and ESPN_S2/SWID for "
+            "private leagues) to .env, then try again."
+        )
+    return ESPNProvider(
+        league_id=int(config.LEAGUE_ID),
+        year=int(config.YEAR),
+        espn_s2=config.ESPN_S2,
+        swid=config.SWID,
+    )

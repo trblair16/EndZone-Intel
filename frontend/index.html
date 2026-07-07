@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EndZone Intel</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>EndZone <span class="accent">Intel</span></h1>
+    <div class="topbar-actions">
+      <span id="sync-status" class="sync-status">checking status…</span>
+      <button id="sync-btn" class="btn-sync">Sync Now</button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card" id="roster-card">
+      <h2>My Roster</h2>
+      <div class="card-body" id="roster-body">Loading…</div>
+    </section>
+
+    <section class="card" id="matchups-card">
+      <h2>This Week's Matchups</h2>
+      <div class="card-body" id="matchups-body">Loading…</div>
+    </section>
+
+    <section class="card" id="standings-card">
+      <h2>Standings</h2>
+      <div class="card-body" id="standings-body">Loading…</div>
+    </section>
+
+    <section class="card" id="transactions-card">
+      <h2>Recent Transactions</h2>
+      <div class="card-body" id="transactions-body">Loading…</div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
