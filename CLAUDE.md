@@ -17,4 +17,7 @@ Personal-use local app. No hosting — runs on localhost only.
   instead of a rewrite
 
 ## Current phase
-Phase 1: read-only ESPN data mirror (roster, matchups, standings, transactions)
+Phase 1 (ESPN data mirror) and Phase 2 (player analysis / draft board port,
+see docs/superpowers/specs/2026-07-08-player-analysis-design.md) are done.
+Next up: pick-position draft simulator and weekly matchup/opponent analysis
+(each gets its own spec before implementation).
