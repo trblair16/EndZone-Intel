@@ -14,6 +14,7 @@ def run_sync(provider: LeagueProvider) -> tuple[dict, dict]:
         ("standings", lambda: provider.get_standings()),
         ("matchups", lambda: provider.get_matchups()),
         ("transactions", lambda: provider.get_transactions()),
+        ("free_agents", lambda: provider.get_free_agents()),
     )
 
     results, errors = {}, {}
