@@ -1,0 +1,978 @@
+<style>
+  :root{
+    --turf-dark:#12241a;
+    --turf-mid:#1c3524;
+    --turf-line:#2f4d38;
+    --chalk:#f2ede1;
+    --chalk-dim:#b9c4b7;
+    --amber:#d98e3f;
+    --amber-dim:#7a5b2e;
+    --clay:#b5533f;
+    --blue-flag:#5b8bb0;
+    --gray-flag:#8a8f86;
+    --green-flag:#6ea86e;
+    --scheme-flag:#8a6bb0;
+  }
+  #wr-root{
+    background:var(--turf-dark);
+    color:var(--chalk);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    min-height:100vh;
+    padding:0;
+    box-sizing:border-box;
+  }
+  #wr-root *{box-sizing:border-box;}
+  .wr-header{
+    padding:28px 24px 18px;
+    border-bottom:1px solid var(--turf-line);
+    background:linear-gradient(180deg, var(--turf-mid), var(--turf-dark));
+  }
+  .wr-eyebrow{
+    font-size:11px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--amber);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .wr-title{
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    text-transform:uppercase;
+    font-stretch:condensed;
+    margin:0 0 4px;
+    line-height:1.05;
+  }
+  .wr-sub{
+    color:var(--chalk-dim);
+    font-size:13px;
+    max-width:640px;
+    line-height:1.5;
+  }
+  .wr-notes{
+    margin-top:16px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:10px;
+  }
+  .wr-note{
+    background:var(--turf-dark);
+    border:1px solid var(--turf-line);
+    border-left:3px solid var(--amber);
+    padding:10px 12px;
+    font-size:12px;
+    color:var(--chalk-dim);
+    line-height:1.45;
+    border-radius:2px;
+  }
+  .wr-note b{color:var(--chalk);}
+  .wr-reco{
+    margin:14px 24px 0;
+    background:var(--turf-mid);
+    border:1px solid var(--turf-line);
+    border-left:3px solid var(--green-flag);
+    border-radius:4px;
+    padding:14px 16px;
+  }
+  .wr-reco-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .wr-reco-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    color:var(--chalk-dim);
+    font-weight:700;
+  }
+  .wr-reco-round{
+    font-size:11px;
+    color:var(--chalk-dim);
+  }
+  .wr-reco-pick{
+    font-size:16px;
+    font-weight:800;
+    color:var(--green-flag);
+    margin-bottom:10px;
+  }
+  .wr-reco-bars{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:8px;
+  }
+  .wr-reco-bar-row{
+    font-size:11px;
+    color:var(--chalk-dim);
+  }
+  .wr-reco-bar-label{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:3px;
+  }
+  .wr-reco-bar-track{
+    background:var(--turf-dark);
+    border-radius:3px;
+    height:6px;
+    overflow:hidden;
+  }
+  .wr-reco-bar-fill{
+    height:100%;
+    background:var(--chalk-dim);
+    border-radius:3px;
+  }
+  .wr-reco-bar-fill.met{background:var(--green-flag);}
+  .wr-reco-bar-fill.recommended{background:var(--amber);}
+  .wr-controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:16px 24px;
+    background:var(--turf-dark);
+    border-bottom:1px solid var(--turf-line);
+    position:sticky;
+    top:0;
+    z-index:5;
+  }
+  .wr-search{
+    flex:1;
+    min-width:160px;
+    background:var(--turf-mid);
+    border:1px solid var(--turf-line);
+    color:var(--chalk);
+    padding:9px 12px;
+    font-size:13px;
+    border-radius:3px;
+    outline:none;
+    font-family:inherit;
+  }
+  .wr-search::placeholder{color:var(--chalk-dim);}
+  .wr-search:focus{border-color:var(--amber);}
+  .wr-tab{
+    background:var(--turf-mid);
+    border:1px solid var(--turf-line);
+    color:var(--chalk-dim);
+    padding:9px 14px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    border-radius:3px;
+    cursor:pointer;
+    transition:all .12s ease;
+  }
+  .wr-tab:hover{color:var(--chalk); border-color:var(--chalk-dim);}
+  .wr-tab.active{background:var(--amber); color:var(--turf-dark); border-color:var(--amber);}
+  .wr-toggle-hide{
+    background:transparent;
+    border:1px solid var(--turf-line);
+    color:var(--chalk-dim);
+    padding:9px 12px;
+    font-size:12px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .wr-toggle-hide:hover{color:var(--chalk);}
+  .wr-legend{
+    padding:10px 24px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    font-size:11px;
+    color:var(--chalk-dim);
+    border-bottom:1px solid var(--turf-line);
+  }
+  .wr-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .dot.injury{background:var(--clay);}
+  .dot.committee{background:var(--gray-flag);}
+  .dot.breakout{background:var(--green-flag);}
+  .dot.rookie{background:var(--blue-flag);}
+  .dot.scheme{background:var(--scheme-flag);}
+  .wr-list{
+    padding:8px 24px 60px;
+  }
+  .wr-tier-head{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.18em;
+    color:var(--amber);
+    font-weight:700;
+    margin:22px 0 8px;
+    padding-bottom:6px;
+    border-bottom:1px solid var(--turf-line);
+  }
+  .wr-row{
+    display:grid;
+    grid-template-columns:34px 1fr auto auto;
+    align-items:center;
+    gap:10px;
+    padding:10px 10px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:background .1s ease;
+    border:1px solid transparent;
+  }
+  .wr-row:hover{background:var(--turf-mid); border-color:var(--turf-line);}
+  .wr-rank{
+    font-family:'SFMono-Regular',Consolas,monospace;
+    color:var(--chalk-dim);
+    font-size:13px;
+    text-align:right;
+  }
+  .wr-name-block{min-width:0;}
+  .wr-name{
+    font-size:14.5px;
+    font-weight:700;
+    color:var(--chalk);
+  }
+  .wr-meta{
+    font-size:11.5px;
+    color:var(--chalk-dim);
+    margin-top:2px;
+  }
+  .wr-flags{
+    display:flex;
+    gap:5px;
+    flex-shrink:0;
+  }
+  .wr-pos-badge{
+    font-size:10.5px;
+    font-weight:800;
+    padding:3px 7px;
+    border-radius:3px;
+    letter-spacing:.03em;
+    flex-shrink:0;
+  }
+  .pos-QB{background:#3a3560; color:#c9c2f5;}
+  .pos-RB{background:#2f4d38; color:#bfe3c9;}
+  .pos-WR{background:#3d4f6e; color:#c6d6f5;}
+  .pos-TE{background:#5c3f2b; color:#f0c9a3;}
+  .pos-DST{background:#4a3a4a; color:#e0c2e0;}
+  .pos-K{background:#3f3f3f; color:#d8d8d8;}
+  .wr-row.gone{
+    opacity:.35;
+  }
+  .wr-row.gone .wr-name{text-decoration:line-through;}
+  .wr-row.mine{
+    background:rgba(110,168,110,0.12);
+    border-color:var(--green-flag);
+  }
+  .wr-row.mine .wr-name{color:var(--green-flag);}
+  .wr-draft-btn{
+    font-size:10.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    padding:6px 10px;
+    border-radius:3px;
+    border:1px solid var(--turf-line);
+    background:transparent;
+    color:var(--chalk-dim);
+    white-space:nowrap;
+  }
+  .wr-row.gone .wr-draft-btn{
+    background:var(--amber-dim);
+    color:var(--chalk);
+    border-color:var(--amber-dim);
+  }
+  .wr-row.mine .wr-draft-btn{
+    background:var(--green-flag);
+    color:var(--turf-dark);
+    border-color:var(--green-flag);
+  }
+  .wr-empty{
+    text-align:center;
+    color:var(--chalk-dim);
+    padding:40px 0;
+    font-size:13px;
+  }
+  .wr-footer-bar{
+    position:sticky;
+    bottom:0;
+    background:var(--turf-mid);
+    border-top:1px solid var(--turf-line);
+    padding:10px 24px;
+    font-size:12px;
+    color:var(--chalk-dim);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .wr-reset{
+    background:transparent;
+    border:1px solid var(--clay);
+    color:var(--clay);
+    padding:6px 12px;
+    border-radius:3px;
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .wr-reset:hover{background:var(--clay); color:var(--chalk);}
+  .wr-section-nav{
+    display:flex;
+    gap:6px;
+    padding:0 24px;
+    background:var(--turf-dark);
+    border-bottom:1px solid var(--turf-line);
+  }
+  .wr-section-tab{
+    background:transparent;
+    border:none;
+    border-bottom:2px solid transparent;
+    color:var(--chalk-dim);
+    padding:12px 4px;
+    margin-right:20px;
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    cursor:pointer;
+  }
+  .wr-section-tab:hover{color:var(--chalk);}
+  .wr-section-tab.active{color:var(--amber); border-bottom-color:var(--amber);}
+  .wr-playbook{
+    padding:24px;
+    max-width:840px;
+  }
+  .wr-pb-rule{
+    background:var(--turf-mid);
+    border:1px solid var(--turf-line);
+    border-left:3px solid var(--amber);
+    border-radius:3px;
+    padding:16px 18px;
+    margin-bottom:14px;
+  }
+  .wr-pb-rule h3{
+    margin:0 0 6px;
+    font-size:14px;
+    color:var(--chalk);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  .wr-pb-rule p{
+    margin:0;
+    font-size:13px;
+    color:var(--chalk-dim);
+    line-height:1.55;
+  }
+  .wr-pb-evidence{
+    margin-top:8px;
+    font-size:11.5px;
+    color:var(--gray-flag);
+    font-style:italic;
+  }
+  .wr-pb-stat{
+    display:inline-block;
+    background:var(--amber-dim);
+    color:var(--chalk);
+    font-weight:700;
+    padding:2px 8px;
+    border-radius:3px;
+    font-size:12px;
+  }
+  .wr-pb-intro{
+    color:var(--chalk-dim);
+    font-size:13px;
+    line-height:1.55;
+    margin-bottom:20px;
+  }
+  .wr-row.is-target{border-left:3px solid var(--amber);}
+  .wr-row.is-watch{border-left:3px solid var(--blue-flag);}
+  .wr-star{
+    color:var(--amber);
+    font-size:13px;
+    margin-right:2px;
+  }
+  .wr-watch-star{
+    color:var(--blue-flag);
+    font-size:13px;
+    margin-right:2px;
+  }
+  .wr-toggle-targets{
+    background:transparent;
+    border:1px solid var(--amber-dim);
+    color:var(--amber);
+    padding:9px 12px;
+    font-size:12px;
+    font-weight:700;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .wr-toggle-targets:hover{background:var(--amber-dim); color:var(--chalk);}
+  .wr-toggle-targets.active{background:var(--amber); color:var(--turf-dark); border-color:var(--amber);}
+  .wr-toggle-watch{
+    background:transparent;
+    border:1px solid var(--blue-flag);
+    color:var(--blue-flag);
+    padding:9px 12px;
+    font-size:12px;
+    font-weight:700;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .wr-toggle-watch:hover{background:var(--blue-flag); color:var(--turf-dark);}
+  .wr-toggle-watch.active{background:var(--blue-flag); color:var(--turf-dark); border-color:var(--blue-flag);}
+  .hidden{display:none !important;}
+  @media(max-width:520px){
+    .wr-title{font-size:22px;}
+    .wr-row{grid-template-columns:24px 1fr auto; grid-template-areas:"rank name btn" "rank flags flags";}
+    .wr-rank{grid-area:rank;}
+    .wr-name-block{grid-area:name;}
+    .wr-draft-btn{grid-area:btn;}
+    .wr-flags{grid-area:flags; margin-top:4px;}
+  }
+</style>
+
+<div id="wr-root">
+  <div class="wr-header">
+    <div class="wr-eyebrow">12-Team &middot; PPR &middot; Draft War Room</div>
+    <div class="wr-title">Team Nepotism — 2026 Board</div>
+    <div class="wr-sub">Tiered PPR rankings built from current ADP plus the tape from your 2025 season. Tap any player to mark them drafted as the board moves.</div>
+    <div class="wr-notes">
+      <div class="wr-note"><b>Injury history flag:</b> 2025 cost you Lamb, Bowers, Daniels &amp; Hampton for stretches. Flagged players aren't off-limits — just don't stack three of them in your top 5 picks.</div>
+      <div class="wr-note"><b>Committee flag:</b> Etienne and Walker got value-crushed by backfield mates last year. Same risk flagged here — know the timeshare before you pay RB2 price for a part-time role.</div>
+      <div class="wr-note"><b>Patience note:</b> Pitts looked droppable in Sept, then broke out in the second half. Slow monthlong starts aren't always a bust signal.</div>
+      <div class="wr-note"><b>Trade note:</b> You made 50 moves last year — most in the league by far — and still finished with the fewest total points scored. Egbuka, Worthy, Collins: each was a reaction to the last two weeks, not the underlying role. Set a personal cap on in-season transactions and let the initial build breathe before chasing the next name.</div>
+    </div>
+  </div>
+
+  <div class="wr-section-nav">
+    <button class="wr-section-tab active" data-section="board">Draft Board</button>
+    <button class="wr-section-tab" data-section="playbook">Season Playbook</button>
+  </div>
+
+  <div id="wr-section-board">
+  <div class="wr-reco" id="wr-reco">
+    <div class="wr-reco-top">
+      <span class="wr-reco-title">Draft Assistant</span>
+      <span class="wr-reco-round" id="wr-reco-round">Round 1</span>
+    </div>
+    <div class="wr-reco-pick" id="wr-reco-pick">Recommended: Best available RB or WR</div>
+    <div class="wr-reco-bars" id="wr-reco-bars"></div>
+  </div>
+
+  <div class="wr-controls">
+    <input class="wr-search" id="wr-search" placeholder="Search a player..." />
+    <button class="wr-tab active" data-pos="ALL">All</button>
+    <button class="wr-tab" data-pos="QB">QB</button>
+    <button class="wr-tab" data-pos="RB">RB</button>
+    <button class="wr-tab" data-pos="WR">WR</button>
+    <button class="wr-tab" data-pos="TE">TE</button>
+    <button class="wr-tab" data-pos="DST">D/ST</button>
+    <button class="wr-tab" data-pos="K">K</button>
+    <button class="wr-toggle-targets" id="wr-toggle-targets">&#9733; My Targets</button>
+    <button class="wr-toggle-watch" id="wr-toggle-watch">&#9734; Watch List</button>
+    <button class="wr-toggle-hide" id="wr-hide-drafted">Hide drafted</button>
+  </div>
+
+  <div class="wr-legend">
+    <span><i class="dot" style="background:var(--amber)"></i> &#9733; Top target</span>
+    <span><i class="dot" style="background:var(--blue-flag)"></i> &#9734; Watch (nice to have if he falls)</span>
+    <span><i class="dot injury"></i> Injury history</span>
+    <span><i class="dot committee"></i> Committee / timeshare risk</span>
+    <span><i class="dot breakout"></i> Breakout watch</span>
+    <span><i class="dot rookie"></i> Rookie / unproven role</span>
+    <span><i class="dot scheme"></i> Scheme / role change risk</span>
+  </div>
+
+  <div class="wr-list" id="wr-list"></div>
+
+  <div class="wr-footer-bar">
+    <span id="wr-count">Loading board...</span>
+    <button class="wr-reset" id="wr-reset">Reset drafted picks</button>
+  </div>
+  </div>
+
+  <div id="wr-section-playbook" class="hidden">
+    <div class="wr-playbook">
+      <div class="wr-pb-intro">Rules built from what actually happened to Team Nepotism in 2025 — not generic advice. Read these before you make an in-season move, not just on draft day.</div>
+
+      <div class="wr-pb-rule">
+        <h3>1. Cap your transactions</h3>
+        <p>You made <span class="wr-pb-stat">50 moves</span> last season — most in the league by far — and still finished with the fewest total points scored, lower than the 2-11 team. Volume of moves didn't buy production. Set a soft personal limit (say, 2 moves a week) and make yourself justify going past it.</p>
+        <div class="wr-pb-evidence">Evidence: season transaction log vs. points-for, all 8 teams.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>2. Don't flip a starter off one outlier week</h3>
+        <p>Three different QBs started in your first three weeks (Daniels &rarr; Fields &rarr; Goff), each swap chasing the previous week's box score. The same thing happened with Wilson/Odunze bouncing between bench and lineup. Week 4 — when Jones settled in and Wilson/Odunze both started together — was your tightest, most predictable week of the year. Stability outperformed chasing.</p>
+        <div class="wr-pb-evidence">Evidence: Weeks 1-4 lineup data, QB and WR2/FLEX slots.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>3. Watch for the bench-then-pop pattern</h3>
+        <p>Your own read on last season: guys would underperform while started, you'd bench them, and the moment they came out they'd pop off. Before benching a struggling player, check whether the underlying role/target share is actually declining, or if it's just a quiet week. If the role hasn't changed, the points are more likely to still be coming.</p>
+        <div class="wr-pb-evidence">Evidence: reported pattern, Wilson/Odunze usage weeks 1-4.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>3b. A declining trend is not the same as one bad week</h3>
+        <p>Etienne is the opposite case from Wilson/Odunze: 16.9 &rarr; 11.6 &rarr; 8.8 across three straight starts, each one worse than the last, with his best week of the stretch coming on your bench. That's a real trend, not a one-off dip. The "don't panic on one week" rule only applies to actual one-week outliers — if the score has fallen for 2-3 straight starts, that's a role change worth investigating, not noise to ride out.</p>
+        <div class="wr-pb-evidence">Evidence: Etienne Weeks 1-5 proj/score.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>4. Buy-low trades need proof, not projection</h3>
+        <p>Egbuka cost a trade after Week 6 and gave nothing back; Collins got traded away right after a concussion, selling low on a healthy long-term asset. Before trading for or away a player mid-season, check the last 3 weeks of actual usage — not the name value or a single bad/good week.</p>
+        <div class="wr-pb-evidence">Evidence: in-season trades for Egbuka, Judkins, Pittman, Hall; Collins trade-away.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>5. Some injuries just aren't your fault</h3>
+        <p>Hampton's best game of the season (27.5 pts) came the week before he landed on IR. Lamb, Bowers, and Daniels all lost time too. That's real bad luck stacked on a solid draft, not a scouting error — don't over-correct the whole strategy because of one unlucky season.</p>
+        <div class="wr-pb-evidence">Evidence: Hampton Wk4 &rarr; Wk5 IR; Lamb/Bowers/Daniels missed time.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>6. A declining trend while started is different from one bad week</h3>
+        <p>Etienne's scores while started went 16.9 &rarr; 11.6 &rarr; 8.8 across three straight weeks, with his best game of the stretch coming in the one week he was benched. That's not a slump that snaps back — it's a role quietly shrinking start to start. If a player's production drops each consecutive week he's in your lineup, that's a trend to act on, not a one-off to ride out.</p>
+        <div class="wr-pb-evidence">Evidence: Etienne weekly scores, Weeks 1-5.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>7. A hot streak isn't a sample size yet</h3>
+        <p>You picked up Juwan Johnson over Dallas Goedert because he'd looked like one of his QB's most trusted targets in a couple of recent games — then he busted the week you started him. The read on Goedert's risk (run-heavy offense, A.J. Brown soaking up targets) was actually correct reasoning. The mistake was treating 2-3 good games as equivalent information to an established, if capped, role. A short hot streak carries more downside than a known boom/bust floor, because you don't have enough data yet to know where the streak settles.</p>
+        <div class="wr-pb-evidence">Evidence: Week 5 TE streaming decision, Juwan Johnson vs. Dallas Goedert.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>8. A true 50/50 committee hurts both backs, not just one</h3>
+        <p>Etienne's problem in Jacksonville was a single back's role quietly eroding while he stayed the nominal starter. Stevenson and Henderson in New England are a different failure mode entirely: neither back ever separated from the other, so both stayed too inconsistent to trust and too capped to have real upside — both spent most of last season on waivers despite real, non-trivial volume. When evaluating a "committee" flag, ask which version it is: a clear lead back with a handcuff (fine to draft the lead), or a genuine even split (risky for anyone involved, no matter who looks like the nominal starter on paper).</p>
+        <div class="wr-pb-evidence">Evidence: Rhamondre Stevenson / TreVeyon Henderson 2025 season, New England backfield.</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>9. Don't stack two health-risk TEs — production risk is a different category</h3>
+        <p>Two practice drafts landed on the same pattern by accident: both TE picks (Kittle + Kraft) were simultaneous health bets — real risk of missed games at the same position, with no fallback if either recovery ran slow. That's the specific thing to avoid. It's a different situation than pairing a health-risk TE with one who's simply inconsistent week to week (like Goedert, whose risk is TD/target variance, not availability) — that's one real bet plus one known, if boom-or-bust, floor, which is a defensible pairing. The rule is about not doubling up on "might not play," not about avoiding every TE with any flag next to his name.</p>
+        <div class="wr-pb-evidence">Evidence: Practice Drafts 1 and 5 (Kittle + Kraft, both health risk) vs. Practice Draft 7 (Kittle + Goedert, one health risk + one production-variance).</div>
+      </div>
+
+      <div class="wr-pb-rule">
+        <h3>Draft Shape: Round-by-Round Plan</h3>
+        <p><b>Target end roster:</b> ~5 RB, ~6 WR, 2 QB, 2 TE, 1 D/ST, 1 K (16 rounds, 9 starters + 7 bench).</p>
+        <p style="margin-top:10px;"><b>R1&ndash;2:</b> Best player available, RB or WR (elite tier) &mdash; a true bell-cow RB is the strongest injury insurance you can draft.<br>
+        <b>R3&ndash;4:</b> Best of RB/WR, or an elite TE (Bowers/McBride-tier) if one of your targets falls &mdash; worth breaking pattern for, not worth reaching for.<br>
+        <b>R5&ndash;6:</b> RB and WR depth &mdash; start building bench RB depth now, not in November like last year.<br>
+        <b>R7&ndash;8:</b> QB and TE can both wait past this window &mdash; seven practice drafts confirm Stafford (plus a solid QB2 like Lawrence/Williams) and a real TE (Kittle/Kraft/Goedert/Ferguson-tier) are consistently still there at R9+. Exception: if Lamar Jackson is still on the board around R4&ndash;5, take him &mdash; his rushing floor is a genuinely scarce asset worth breaking the wait for.<br>
+        <b>R9&ndash;10:</b> Lock QB1 and, if you didn't grab an elite TE early, TE1 here too &mdash; both positions have reliably deep value at this range, so this is the window to actually pull the trigger rather than wait further. <i>Watch for:</i> other managers reading the same market inefficiency and sniping Stafford or the Kittle/Kraft injury-discount tier earlier than raw ADP suggests &mdash; don't assume the value will still be sitting there without checking.<br>
+        <b>R11&ndash;13:</b> RB depth, a handcuff for your own RB1, and final WR bench pieces.<br>
+        <b>R14:</b> QB2 as a streamer/investment (Shough-tier) &mdash; insurance if your QB1 carries an injury flag.<br>
+        <b>R15:</b> D/ST.<br>
+        <b>R16:</b> K.</p>
+        <div class="wr-pb-evidence">Evidence: 2025 roster construction (16 total picks) vs. in-season RB scarcity and IR usage.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+
+const PLAYERS = [
+{rank:1,name:"Jahmyr Gibbs",pos:"RB",team:"DET",tier:1,target:true},
+{rank:2,name:"Bijan Robinson",pos:"RB",team:"ATL",tier:1,target:true},
+{rank:3,name:"Christian McCaffrey",pos:"RB",team:"SF",tier:1,flags:["injury"],target:true},
+{rank:4,name:"Ja'Marr Chase",pos:"WR",team:"CIN",tier:1,target:true},
+{rank:5,name:"Puka Nacua",pos:"WR",team:"LAR",tier:1},
+{rank:6,name:"Justin Jefferson",pos:"WR",team:"MIN",tier:1,watch:true,flags:["scheme"]},
+{rank:7,name:"CeeDee Lamb",pos:"WR",team:"DAL",tier:1,flags:["injury"]},
+{rank:8,name:"Amon-Ra St. Brown",pos:"WR",team:"DET",tier:1,target:true},
+{rank:9,name:"Jonathan Taylor",pos:"RB",team:"IND",tier:1},
+{rank:10,name:"Saquon Barkley",pos:"RB",team:"PHI",tier:1},
+{rank:11,name:"Jaxon Smith-Njigba",pos:"WR",team:"SEA",tier:2},
+{rank:16,name:"Malik Nabers",pos:"WR",team:"NYG",tier:3,flags:["injury"]},
+{rank:13,name:"Nico Collins",pos:"WR",team:"HOU",tier:2,flags:["injury"]},
+{rank:14,name:"De'Von Achane",pos:"RB",team:"MIA",tier:2,flags:["scheme"]},
+{rank:15,name:"Ashton Jeanty",pos:"RB",team:"LV",tier:2},
+{rank:16,name:"Brian Thomas Jr.",pos:"WR",team:"JAX",tier:2},
+{rank:17,name:"Derrick Henry",pos:"RB",team:"BAL",tier:2,target:true},
+{rank:18,name:"Josh Jacobs",pos:"RB",team:"GB",tier:2},
+{rank:19,name:"Chase Brown",pos:"RB",team:"CIN",tier:2,target:true},
+{rank:20,name:"A.J. Brown",pos:"WR",team:"NE",tier:2,target:true,flags:["scheme"]},
+{rank:21,name:"Drake London",pos:"WR",team:"ATL",tier:3},
+{rank:22,name:"Tee Higgins",pos:"WR",team:"CIN",tier:3,target:true},
+{rank:23,name:"Trey McBride",pos:"TE",team:"ARI",tier:3},
+{rank:24,name:"Brock Bowers",pos:"TE",team:"LV",tier:3,flags:["injury"]},
+{rank:25,name:"Ladd McConkey",pos:"WR",team:"LAC",tier:3},
+{rank:26,name:"Terry McLaurin",pos:"WR",team:"WSH",tier:3},
+{rank:27,name:"DK Metcalf",pos:"WR",team:"PIT",tier:3,flags:["scheme"]},
+{rank:28,name:"Garrett Wilson",pos:"WR",team:"NYJ",tier:3,flags:["injury"]},
+{rank:29,name:"Bucky Irving",pos:"RB",team:"TB",tier:3,flags:["committee"]},
+{rank:30,name:"James Cook",pos:"RB",team:"BUF",tier:3},
+{rank:31,name:"Josh Allen",pos:"QB",team:"BUF",tier:3},
+{rank:32,name:"Lamar Jackson",pos:"QB",team:"BAL",tier:3},
+{rank:33,name:"Jayden Daniels",pos:"QB",team:"WSH",tier:3,flags:["injury"]},
+{rank:34,name:"Joe Burrow",pos:"QB",team:"CIN",tier:3},
+{rank:35,name:"Omarion Hampton",pos:"RB",team:"LAC",tier:3,flags:["injury","breakout"],target:true},
+{rank:21,name:"Kenneth Walker III",pos:"RB",team:"KC",tier:2},
+{rank:44,name:"Travis Etienne Jr.",pos:"RB",team:"NO",tier:4},
+{rank:38,name:"James Conner",pos:"RB",team:"ARI",tier:4},
+{rank:39,name:"Chuba Hubbard",pos:"RB",team:"CAR",tier:4},
+{rank:40,name:"Alvin Kamara",pos:"RB",team:"NO",tier:4},
+{rank:41,name:"Kyren Williams",pos:"RB",team:"LAR",tier:4},
+{rank:42,name:"Breece Hall",pos:"RB",team:"NYJ",tier:4},
+{rank:43,name:"Tony Pollard",pos:"RB",team:"TEN",tier:4},
+{rank:44,name:"David Montgomery",pos:"RB",team:"HOU",tier:4},
+{rank:45,name:"Rachaad White",pos:"RB",team:"WSH",tier:4},
+{rank:46,name:"Davante Adams",pos:"WR",team:"LAR",tier:4},
+{rank:47,name:"Xavier Worthy",pos:"WR",team:"KC",tier:4,flags:["committee"]},
+{rank:48,name:"Zay Flowers",pos:"WR",team:"BAL",tier:4,flags:["breakout"]},
+{rank:49,name:"Jameson Williams",pos:"WR",team:"DET",tier:4},
+{rank:50,name:"Courtland Sutton",pos:"WR",team:"DEN",tier:4,flags:["scheme"]},
+{rank:51,name:"Jaylen Waddle",pos:"WR",team:"DEN",tier:4},
+{rank:52,name:"Tetairoa McMillan",pos:"WR",team:"CAR",tier:4,flags:["rookie"]},
+{rank:60,name:"Patrick Mahomes",pos:"QB",team:"KC",tier:4,flags:["injury"]},
+{rank:54,name:"Jalen Hurts",pos:"QB",team:"PHI",tier:3},
+{rank:55,name:"Justin Herbert",pos:"QB",team:"LAC",tier:4},
+{rank:56,name:"George Kittle",pos:"TE",team:"SF",tier:4,flags:["injury"]},
+{rank:57,name:"Sam LaPorta",pos:"TE",team:"DET",tier:4,flags:["injury"]},
+{rank:58,name:"Tucker Kraft",pos:"TE",team:"GB",tier:4,flags:["breakout","injury"]},
+{rank:59,name:"Jerry Jeudy",pos:"WR",team:"CLE",tier:5},
+{rank:60,name:"Rome Odunze",pos:"WR",team:"CHI",tier:5,flags:["breakout"]},
+{rank:61,name:"DeVonta Smith",pos:"WR",team:"PHI",tier:5},
+{rank:62,name:"Christian Watson",pos:"WR",team:"GB",tier:5,flags:["breakout"]},
+{rank:63,name:"Jayden Higgins",pos:"WR",team:"HOU",tier:5,flags:["breakout"]},
+{rank:64,name:"Michael Pittman Jr.",pos:"WR",team:"PIT",tier:5},
+{rank:65,name:"Calvin Ridley",pos:"WR",team:"TEN",tier:5},
+{rank:66,name:"Keon Coleman",pos:"WR",team:"BUF",tier:5},
+{rank:112,name:"Stefon Diggs",pos:"WR",team:"FA",tier:6,flags:["scheme"]},
+{rank:68,name:"Deebo Samuel",pos:"WR",team:"WSH",tier:5},
+{rank:69,name:"Chris Olave",pos:"WR",team:"NO",tier:5},
+{rank:70,name:"Jordyn Tyson",pos:"WR",team:"ARI",tier:5,flags:["rookie","breakout"]},
+{rank:71,name:"Luther Burden III",pos:"WR",team:"CHI",tier:5,flags:["rookie","breakout"]},
+{rank:72,name:"Marvin Harrison Jr.",pos:"WR",team:"ARI",tier:5},
+{rank:73,name:"Rashee Rice",pos:"WR",team:"KC",tier:5,target:true},
+{rank:74,name:"Cooper Kupp",pos:"WR",team:"SEA",tier:5},
+{rank:75,name:"George Pickens",pos:"WR",team:"DAL",tier:5},
+{rank:76,name:"Jakobi Meyers",pos:"WR",team:"JAX",tier:5},
+{rank:77,name:"Travis Hunter",pos:"WR",team:"JAX",tier:5,flags:["rookie"]},
+{rank:78,name:"Ricky Pearsall",pos:"WR",team:"SF",tier:5},
+{rank:60,name:"Bhayshul Tuten",pos:"RB",team:"JAX",tier:4,flags:["breakout"]},
+{rank:80,name:"Quinshon Judkins",pos:"RB",team:"CLE",tier:5},
+{rank:81,name:"Jaylen Warren",pos:"RB",team:"PIT",tier:5},
+{rank:82,name:"Aaron Jones Sr.",pos:"RB",team:"MIN",tier:5},
+{rank:83,name:"Rico Dowdle",pos:"RB",team:"CAR",tier:5,flags:["committee"]},
+{rank:84,name:"Tyrone Tracy Jr.",pos:"RB",team:"NYG",tier:5,flags:["committee"]},
+{rank:110,name:"Isiah Pacheco",pos:"RB",team:"DET",tier:6,flags:["committee","injury"]},
+{rank:86,name:"D'Andre Swift",pos:"RB",team:"CHI",tier:5},
+{rank:87,name:"Jerome Ford",pos:"RB",team:"CLE",tier:6,flags:["committee"]},
+{rank:88,name:"Kenneth Gainwell",pos:"RB",team:"TB",tier:6,flags:["breakout","committee"]},
+{rank:89,name:"Jonathon Brooks",pos:"RB",team:"CAR",tier:6,flags:["injury","breakout"]},
+{rank:90,name:"Kyler Murray",pos:"QB",team:"MIN",tier:6},
+{rank:91,name:"Bo Nix",pos:"QB",team:"DEN",tier:5},
+{rank:92,name:"Baker Mayfield",pos:"QB",team:"TB",tier:6},
+{rank:93,name:"C.J. Stroud",pos:"QB",team:"HOU",tier:6},
+{rank:94,name:"Brock Purdy",pos:"QB",team:"SF",tier:6},
+{rank:33,name:"Drake Maye",pos:"QB",team:"NE",tier:3},
+{rank:96,name:"Justin Fields",pos:"QB",team:"KC",tier:6,flags:["scheme"]},
+{rank:56,name:"Caleb Williams",pos:"QB",team:"CHI",tier:4},
+{rank:98,name:"Trevor Lawrence",pos:"QB",team:"JAX",tier:6},
+{rank:99,name:"Cam Ward",pos:"QB",team:"TEN",tier:6},
+{rank:100,name:"Dak Prescott",pos:"QB",team:"DAL",tier:6},
+{rank:101,name:"Sam Darnold",pos:"QB",team:"SEA",tier:7},
+{rank:57,name:"Matthew Stafford",pos:"QB",team:"LAR",tier:4},
+{rank:92,name:"Tyler Shough",pos:"QB",team:"NO",tier:5,flags:["breakout"]},
+{rank:65,name:"Colston Loveland",pos:"TE",team:"CHI",tier:4},
+{rank:104,name:"Travis Kelce",pos:"TE",team:"KC",tier:6,flags:["injury"]},
+{rank:105,name:"Mark Andrews",pos:"TE",team:"BAL",tier:6},
+{rank:66,name:"Kyle Pitts Sr.",pos:"TE",team:"ATL",tier:5,flags:["breakout"]},
+{rank:107,name:"Dalton Kincaid",pos:"TE",team:"BUF",tier:7},
+{rank:108,name:"David Njoku",pos:"TE",team:"CLE",tier:7},
+{rank:109,name:"Dallas Goedert",pos:"TE",team:"PHI",tier:6},
+{rank:111,name:"Harold Fannin Jr.",pos:"TE",team:"CLE",tier:6,flags:["breakout"]},
+{rank:109,name:"T.J. Hockenson",pos:"TE",team:"MIN",tier:7},
+{rank:110,name:"Evan Engram",pos:"TE",team:"DEN",tier:7},
+{rank:109,name:"Jake Ferguson",pos:"TE",team:"DAL",tier:6},
+{rank:70,name:"Cam Skattebo",pos:"RB",team:"NYG",tier:4,flags:["injury","committee"]},
+{rank:113,name:"RJ Harvey",pos:"RB",team:"DEN",tier:6,flags:["rookie"]},
+{rank:114,name:"TreVeyon Henderson",pos:"RB",team:"NE",tier:6,flags:["rookie","committee"]},
+{rank:89,name:"Rhamondre Stevenson",pos:"RB",team:"NE",tier:5,watch:true,flags:["committee"]},
+{rank:115,name:"Jaylen Warren",pos:"RB",team:"PIT",tier:6},
+{rank:116,name:"Nick Chubb",pos:"RB",team:"HOU",tier:7,flags:["injury"]},
+{rank:117,name:"J.K. Dobbins",pos:"RB",team:"DEN",tier:7,flags:["injury","committee"]},
+{rank:118,name:"Kaleb Johnson",pos:"RB",team:"PIT",tier:7,flags:["rookie"]},
+{rank:119,name:"Jaylen Warren",pos:"RB",team:"PIT",tier:7},
+{rank:120,name:"Matthew Golden",pos:"WR",team:"GB",tier:7,flags:["rookie"]},
+{rank:121,name:"Denzel Boston",pos:"WR",team:"SEA",tier:7,flags:["rookie"]},
+{rank:122,name:"Emeka Egbuka",pos:"WR",team:"TB",tier:6,flags:["breakout"]},
+{rank:67,name:"Tyler Warren",pos:"TE",team:"IND",tier:5},
+{rank:124,name:"Broncos D/ST",pos:"DST",team:"DEN",tier:6},
+{rank:125,name:"Seahawks D/ST",pos:"DST",team:"SEA",tier:6},
+{rank:126,name:"Steelers D/ST",pos:"DST",team:"PIT",tier:6},
+{rank:127,name:"Eagles D/ST",pos:"DST",team:"PHI",tier:6},
+{rank:128,name:"Vikings D/ST",pos:"DST",team:"MIN",tier:7},
+{rank:125,name:"Ravens D/ST",pos:"DST",team:"BAL",tier:6},
+{rank:124,name:"Texans D/ST",pos:"DST",team:"HOU",tier:6},
+{rank:131,name:"Bills D/ST",pos:"DST",team:"BUF",tier:7},
+{rank:132,name:"Lions D/ST",pos:"DST",team:"DET",tier:7},
+{rank:126,name:"Rams D/ST",pos:"DST",team:"LAR",tier:6},
+{rank:133,name:"Patriots D/ST",pos:"DST",team:"NE",tier:7},
+{rank:134,name:"Chase McLaughlin",pos:"K",team:"TB",tier:7},
+{rank:135,name:"Cameron Dicker",pos:"K",team:"LAC",tier:7},
+{rank:136,name:"Jake Bates",pos:"K",team:"DET",tier:7},
+{rank:137,name:"Brandon Aubrey",pos:"K",team:"DAL",tier:7},
+{rank:138,name:"Tyler Bass",pos:"K",team:"BUF",tier:7},
+{rank:139,name:"Harrison Butker",pos:"K",team:"KC",tier:7},
+{rank:140,name:"Jake Elliott",pos:"K",team:"PHI",tier:7},
+{rank:141,name:"Wil Lutz",pos:"K",team:"DEN",tier:7},
+{rank:142,name:"Chris Boswell",pos:"K",team:"PIT",tier:7}
+];
+
+const FLAG_LABEL = {injury:"Injury history", committee:"Committee risk", breakout:"Breakout watch", rookie:"Rookie / unproven", scheme:"Scheme / role change risk"};
+const FLAG_CLASS = {injury:"injury", committee:"committee", breakout:"breakout", rookie:"rookie", scheme:"scheme"};
+
+const LEAGUE_SIZE = 12;
+const POSITION_TARGETS = {
+  RB:  {min:5, max:6, earliest:1,  label:"RB"},
+  WR:  {min:5, max:6, earliest:1,  label:"WR"},
+  QB:  {min:2, max:2, earliest:7,  label:"QB"},
+  TE:  {min:2, max:2, earliest:9,  label:"TE"},
+  DST: {min:1, max:1, earliest:14, label:"D/ST"},
+  K:   {min:1, max:1, earliest:15, label:"K"}
+};
+
+function computeRecommendation(){
+  const myPlayers = PLAYERS.filter(p => drafted[p.name] === 1);
+  const totalPicks = Object.values(drafted).filter(v => v === 1 || v === 2).length;
+  const round = Math.min(16, Math.floor(totalPicks / LEAGUE_SIZE) + 1);
+
+  const counts = {RB:0, WR:0, QB:0, TE:0, DST:0, K:0};
+  myPlayers.forEach(p => { if(counts[p.pos] !== undefined) counts[p.pos]++; });
+
+  const scored = Object.keys(POSITION_TARGETS).map(pos=>{
+    const t = POSITION_TARGETS[pos];
+    const count = counts[pos];
+    const need = Math.max(0, t.min - count);
+    let weight;
+    if(round < t.earliest){
+      // too early for this position — heavily suppress unless we're really behind
+      const gap = t.earliest - round;
+      weight = need > 0 ? Math.max(0.05, 1 - gap * 0.18) : 0;
+    } else {
+      // at or past the natural window — ramp urgency the longer we wait
+      const overdue = round - t.earliest;
+      weight = 1 + overdue * 0.15;
+    }
+    // small bias toward RB when tied, since it's the historically scarce position
+    const bias = pos === 'RB' ? 0.05 : 0;
+    return {pos, count, min:t.min, max:t.max, label:t.label, score: need * weight + bias, need, full: count >= t.max};
+  });
+
+  scored.sort((a,b)=> b.score - a.score);
+  return {round, scored, counts};
+}
+
+function renderRecommendation(){
+  const {round, scored} = computeRecommendation();
+  document.getElementById('wr-reco-round').textContent = `Round ${round}`;
+
+  const top = scored.filter(s => s.score > 0.01).slice(0, 2);
+  const pickEl = document.getElementById('wr-reco-pick');
+  if(top.length === 0){
+    pickEl.textContent = 'Position needs met — take the best player available.';
+  } else if(top.length === 1 || top[1].score < top[0].score * 0.5){
+    pickEl.textContent = `Recommended: ${top[0].label}`;
+  } else {
+    pickEl.textContent = `Recommended: ${top[0].label} or ${top[1].label}`;
+  }
+
+  const topPos = top.length ? top[0].pos : null;
+  const barsEl = document.getElementById('wr-reco-bars');
+  barsEl.innerHTML = scored.map(s=>{
+    const pct = Math.min(100, Math.round((s.count / s.max) * 100));
+    const fillClass = s.full ? 'met' : (s.pos === topPos ? 'recommended' : '');
+    return `
+      <div class="wr-reco-bar-row">
+        <div class="wr-reco-bar-label"><span>${s.label}</span><span>${s.count}/${s.min}${s.max>s.min?'-'+s.max:''}</span></div>
+        <div class="wr-reco-bar-track"><div class="wr-reco-bar-fill ${fillClass}" style="width:${pct}%"></div></div>
+      </div>`;
+  }).join('');
+}
+
+let drafted = {};
+let activePos = "ALL";
+let hideDrafted = false;
+let targetsOnly = false;
+let watchOnly = false;
+let searchTerm = "";
+
+const listEl = document.getElementById('wr-list');
+const countEl = document.getElementById('wr-count');
+
+async function loadDrafted(){
+  try{
+    const res = await window.storage.get('team-nepotism-drafted-2026');
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      drafted = {};
+      Object.keys(parsed).forEach(name=>{
+        const v = parsed[name];
+        drafted[name] = (v === true || v === 2) ? 2 : (v === 1 ? 1 : 2);
+      });
+    }
+  }catch(e){ drafted = {}; }
+  render();
+}
+
+let saveTimer = null;
+let saveAttemptId = 0;
+
+async function persistDrafted(){
+  const myAttempt = ++saveAttemptId;
+  const payload = JSON.stringify(drafted);
+  try{
+    await window.storage.set('team-nepotism-drafted-2026', payload, false);
+  }catch(e){
+    // one quiet retry after a short delay in case of a transient server error
+    await new Promise(r => setTimeout(r, 600));
+    if(myAttempt !== saveAttemptId) return; // a newer save superseded this one, drop it
+    try{
+      await window.storage.set('team-nepotism-drafted-2026', payload, false);
+    }catch(e2){
+      console.warn('Draft board: could not save picks after retry — will try again on next change.', e2);
+    }
+  }
+}
+
+function saveDrafted(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persistDrafted, 400);
+}
+
+function cycleDraftState(name){
+  const current = drafted[name] || 0;
+  const next = (current + 1) % 3; // 0 available -> 1 mine -> 2 gone -> 0
+  if(next === 0){ delete drafted[name]; }
+  else{ drafted[name] = next; }
+  saveDrafted();
+  render();
+}
+
+function render(){
+  renderRecommendation();
+  const term = searchTerm.trim().toLowerCase();
+  let filtered = PLAYERS.filter(p=>{
+    if(activePos !== "ALL" && p.pos !== activePos) return false;
+    if(term && !p.name.toLowerCase().includes(term)) return false;
+    if(hideDrafted && drafted[p.name]) return false;
+    if(targetsOnly && !p.target) return false;
+    if(watchOnly && !p.watch) return false;
+    return true;
+  });
+  filtered.sort((a,b)=> a.tier - b.tier || a.rank - b.rank);
+
+  if(filtered.length === 0){
+    listEl.innerHTML = '<div class="wr-empty">No players match. Try a different search or filter.</div>';
+  } else {
+    let html = '';
+    let lastTier = null;
+    filtered.forEach(p=>{
+      if(p.tier !== lastTier){
+        html += `<div class="wr-tier-head">Tier ${p.tier}</div>`;
+        lastTier = p.tier;
+      }
+      const state = drafted[p.name] || 0; // 0 available, 1 mine, 2 gone
+      const rowClass = state === 1 ? 'mine' : (state === 2 ? 'gone' : '');
+      const flags = (p.flags||[]).map(f=>`<span class="dot ${FLAG_CLASS[f]}" title="${FLAG_LABEL[f]}"></span>`).join('');
+      const star = p.target ? '<span class="wr-star" title="Top target">&#9733;</span>' : (p.watch ? '<span class="wr-watch-star" title="Watch — nice to have">&#9734;</span>' : '');
+      let btnLabel = 'Mark';
+      if(state === 1) btnLabel = 'On My Team';
+      if(state === 2) btnLabel = 'Off Board';
+      html += `
+        <div class="wr-row ${rowClass} ${p.target?'is-target':''} ${p.watch?'is-watch':''}" data-name="${encodeURIComponent(p.name)}">
+          <div class="wr-rank">${p.rank}</div>
+          <div class="wr-name-block">
+            <div class="wr-name">${star}${p.name}</div>
+            <div class="wr-meta">${p.team}</div>
+          </div>
+          <div class="wr-flags">
+            <span class="wr-pos-badge pos-${p.pos}">${p.pos === 'DST' ? 'D/ST' : p.pos}</span>
+            ${flags}
+          </div>
+          <button class="wr-draft-btn">${btnLabel}</button>
+        </div>`;
+    });
+    listEl.innerHTML = html;
+  }
+
+  const mineCount = Object.values(drafted).filter(v=>v===1).length;
+  const goneCount = Object.values(drafted).filter(v=>v===2).length;
+  let countText = `${filtered.length} shown · ${mineCount} on my team · ${goneCount} off board`;
+  if(targetsOnly || watchOnly){
+    const tierCounts = {};
+    filtered.forEach(p=>{ tierCounts[p.tier] = (tierCounts[p.tier]||0) + 1; });
+    const tierKeys = Object.keys(tierCounts).map(Number).sort((a,b)=>a-b);
+    const breakdown = tierKeys.map(t=>`T${t}: ${tierCounts[t]}`).join(' · ');
+    countText += ` — ${breakdown}`;
+  }
+  countEl.textContent = countText;
+
+  listEl.querySelectorAll('.wr-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const name = decodeURIComponent(row.getAttribute('data-name'));
+      cycleDraftState(name);
+    });
+  });
+}
+
+document.getElementById('wr-search').addEventListener('input', (e)=>{
+  searchTerm = e.target.value;
+  render();
+});
+
+document.querySelectorAll('.wr-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.wr-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    activePos = tab.getAttribute('data-pos');
+    render();
+  });
+});
+
+document.getElementById('wr-toggle-targets').addEventListener('click', (e)=>{
+  targetsOnly = !targetsOnly;
+  e.target.classList.toggle('active', targetsOnly);
+  render();
+});
+
+document.getElementById('wr-toggle-watch').addEventListener('click', (e)=>{
+  watchOnly = !watchOnly;
+  e.target.classList.toggle('active', watchOnly);
+  render();
+});
+
+document.getElementById('wr-hide-drafted').addEventListener('click', (e)=>{
+  hideDrafted = !hideDrafted;
+  e.target.textContent = hideDrafted ? 'Show drafted' : 'Hide drafted';
+  render();
+});
+
+document.getElementById('wr-reset').addEventListener('click', ()=>{
+  if(confirm('Clear all drafted marks?')){
+    drafted = {};
+    saveDrafted();
+    render();
+  }
+});
+
+document.querySelectorAll('.wr-section-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.wr-section-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const section = tab.getAttribute('data-section');
+    document.getElementById('wr-section-board').classList.toggle('hidden', section !== 'board');
+    document.getElementById('wr-section-playbook').classList.toggle('hidden', section !== 'playbook');
+  });
+});
+
+loadDrafted();
+
+})();
+</script>
