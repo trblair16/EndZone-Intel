@@ -1,0 +1,143 @@
+const FLAG_CLASS = { injury: '#b5533f', committee: '#8a8f86', breakout: '#6ea86e', rookie: '#5b8bb0', scheme: '#8a6bb0' };
+const FLAG_LABEL = { injury: 'Injury history', committee: 'Committee risk', breakout: 'Breakout watch', rookie: 'Rookie / unproven', scheme: 'Scheme / role change risk' };
+
+let dbPlayers = [];
+let dbRecommendation = null;
+let dbActivePos = 'ALL';
+let dbHideDrafted = false;
+let dbTargetsOnly = false;
+let dbWatchOnly = false;
+let dbSearchTerm = '';
+let dbLoaded = false;
+
+function renderDbRecommendation() {
+  if (!dbRecommendation) return;
+  document.getElementById('db-reco-round').textContent = `Round ${dbRecommendation.round}`;
+  const top = dbRecommendation.scored.filter((s) => s.score > 0.01).slice(0, 2);
+  const pickEl = document.getElementById('db-reco-pick');
+  if (top.length === 0) {
+    pickEl.textContent = 'Position needs met — take the best player available.';
+  } else if (top.length === 1 || top[1].score < top[0].score * 0.5) {
+    pickEl.textContent = `Recommended: ${top[0].label}`;
+  } else {
+    pickEl.textContent = `Recommended: ${top[0].label} or ${top[1].label}`;
+  }
+  const topPos = top.length ? top[0].pos : null;
+  document.getElementById('db-reco-bars').innerHTML = dbRecommendation.scored
+    .map((s) => {
+      const pct = Math.min(100, Math.round((s.count / s.max) * 100));
+      const fillClass = s.full ? 'met' : (s.pos === topPos ? 'recommended' : '');
+      return `
+        <div>
+          <div class="db-reco-bar-label"><span>${s.label}</span><span>${s.count}/${s.min}${s.max > s.min ? '-' + s.max : ''}</span></div>
+          <div class="db-reco-bar-track"><div class="db-reco-bar-fill ${fillClass}" style="width:${pct}%"></div></div>
+        </div>`;
+    })
+    .join('');
+}
+
+function renderDbList() {
+  const term = dbSearchTerm.trim().toLowerCase();
+  let filtered = dbPlayers.filter((p) => {
+    if (dbActivePos !== 'ALL' && p.pos !== dbActivePos) return false;
+    if (term && !p.name.toLowerCase().includes(term)) return false;
+    if (dbHideDrafted && p.state !== 'available') return false;
+    if (dbTargetsOnly && !p.target) return false;
+    if (dbWatchOnly && !p.watch) return false;
+    return true;
+  });
+  filtered.sort((a, b) => a.tier - b.tier || a.rank - b.rank);
+
+  const listEl = document.getElementById('db-list');
+  if (filtered.length === 0) {
+    listEl.innerHTML = emptyState('No players match. Try a different search or filter.');
+  } else {
+    let html = '';
+    let lastTier = null;
+    filtered.forEach((p) => {
+      if (p.tier !== lastTier) {
+        html += `<div class="db-tier-head">Tier ${p.tier}</div>`;
+        lastTier = p.tier;
+      }
+      const rowClass = p.state === 'mine' ? 'mine' : (p.state === 'gone' ? 'gone' : '');
+      const flags = (p.flags || [])
+        .map((f) => `<span title="${FLAG_LABEL[f]}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${FLAG_CLASS[f]}"></span>`)
+        .join(' ');
+      const star = p.target ? '<span class="db-star" title="Top target">&#9733;</span>' : (p.watch ? '<span class="db-watch-star" title="Watch">&#9734;</span>' : '');
+      let btnLabel = 'Mark';
+      if (p.state === 'mine') btnLabel = 'On My Team';
+      if (p.state === 'gone') btnLabel = 'Off Board';
+      html += `
+        <div class="db-row ${rowClass}" data-name="${encodeURIComponent(p.name)}">
+          <div class="db-rank">${p.rank}</div>
+          <div>
+            <div class="db-name">${star}${p.name}</div>
+            <div class="db-meta">${p.team}</div>
+          </div>
+          <div><span class="db-pos-badge">${p.pos === 'DST' ? 'D/ST' : p.pos}</span> ${flags}</div>
+          <button class="db-draft-btn">${btnLabel}</button>
+        </div>`;
+    });
+    listEl.innerHTML = html;
+  }
+
+  const mineCount = dbPlayers.filter((p) => p.state === 'mine').length;
+  const goneCount = dbPlayers.filter((p) => p.state === 'gone').length;
+  document.getElementById('db-count').textContent = `${filtered.length} shown · ${mineCount} on my team · ${goneCount} off board`;
+
+  listEl.querySelectorAll('.db-row').forEach((row) => {
+    row.onclick = async () => {
+      const name = decodeURIComponent(row.getAttribute('data-name'));
+      await markDraftState(name);
+    };
+  });
+}
+
+async function markDraftState(name) {
+  const res = await fetch('/api/players/draft-state', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  const body = await res.json();
+  dbPlayers = body.players;
+  dbRecommendation = body.recommendation;
+  renderDbRecommendation();
+  renderDbList();
+}
+
+async function loadDraftBoard() {
+  if (dbLoaded) return;
+  dbLoaded = true;
+  try {
+    const body = await apiGet('/api/players');
+    dbPlayers = body.players;
+    dbRecommendation = body.recommendation;
+    renderDbRecommendation();
+    renderDbList();
+  } catch (err) {
+    document.getElementById('db-list').innerHTML = emptyState(err.message);
+  }
+}
+
+document.getElementById('db-search').addEventListener('input', (e) => { dbSearchTerm = e.target.value; renderDbList(); });
+document.querySelectorAll('.db-tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.db-tab').forEach((t) => t.classList.remove('active'));
+    tab.classList.add('active');
+    dbActivePos = tab.getAttribute('data-pos');
+    renderDbList();
+  });
+});
+document.getElementById('db-toggle-targets').addEventListener('click', (e) => { dbTargetsOnly = !dbTargetsOnly; e.target.classList.toggle('active', dbTargetsOnly); renderDbList(); });
+document.getElementById('db-toggle-watch').addEventListener('click', (e) => { dbWatchOnly = !dbWatchOnly; e.target.classList.toggle('active', dbWatchOnly); renderDbList(); });
+document.getElementById('db-hide-drafted').addEventListener('click', (e) => { dbHideDrafted = !dbHideDrafted; e.target.textContent = dbHideDrafted ? 'Show drafted' : 'Hide drafted'; renderDbList(); });
+document.getElementById('db-reset').addEventListener('click', async () => {
+  if (!confirm('Clear all drafted marks?')) return;
+  const res = await fetch('/api/players/reset-draft-state', { method: 'POST' });
+  const body = await res.json();
+  dbPlayers = body.players;
+  dbRecommendation = body.recommendation;
+  renderDbRecommendation();
+  renderDbList();
+});

@@ -126,11 +126,41 @@ function renderTransactions(data) {
   );
 }
 
+function renderRosterFlags(data) {
+  if (data.length === 0) {
+    setBody('roster-flags-body', emptyState('No risk-flagged players on your roster yet.'));
+    return;
+  }
+  const rows = data
+    .map((p) => `<tr><td>${p.name}</td><td>${p.pos}</td><td>${p.flags.join(', ')}</td></tr>`)
+    .join('');
+  setBody(
+    'roster-flags-body',
+    `<table><thead><tr><th>Player</th><th>Pos</th><th>Flags</th></tr></thead><tbody>${rows}</tbody></table>`
+  );
+}
+
+function renderFreeAgentMatches(data) {
+  if (data.length === 0) {
+    setBody('free-agent-matches-body', emptyState('No target/watch-list players currently on waivers.'));
+    return;
+  }
+  const rows = data
+    .map((p) => `<tr><td>${p.name}</td><td>${p.pos}</td><td>${p.team}</td><td>${p.target ? 'Target' : 'Watch'}</td></tr>`)
+    .join('');
+  setBody(
+    'free-agent-matches-body',
+    `<table><thead><tr><th>Player</th><th>Pos</th><th>Team</th><th>List</th></tr></thead><tbody>${rows}</tbody></table>`
+  );
+}
+
 const SECTIONS = [
   { key: 'roster', path: '/api/roster', render: renderRoster },
   { key: 'matchups', path: '/api/matchups', render: renderMatchups },
   { key: 'standings', path: '/api/standings', render: renderStandings },
   { key: 'transactions', path: '/api/transactions', render: renderTransactions },
+  { key: 'roster-flags', path: '/api/analysis/roster-flags', render: renderRosterFlags },
+  { key: 'free-agent-matches', path: '/api/analysis/free-agent-matches', render: renderFreeAgentMatches },
 ];
 
 async function loadSection(section, configured) {
@@ -176,3 +206,15 @@ async function syncNow() {
 
 document.getElementById('sync-btn').addEventListener('click', syncNow);
 loadAll();
+
+document.querySelectorAll('.page-tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.page-tab').forEach((t) => t.classList.remove('active'));
+    tab.classList.add('active');
+    const page = tab.getAttribute('data-page');
+    document.querySelectorAll('.page').forEach((el) => el.classList.add('hidden'));
+    document.getElementById(`page-${page}`).classList.remove('hidden');
+    if (page === 'draftboard') loadDraftBoard();
+    if (page === 'playbook') loadPlaybook();
+  });
+});

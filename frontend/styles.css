@@ -160,3 +160,193 @@ th {
 .matchup-row:last-child {
   border-bottom: none;
 }
+
+.page-nav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 2rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 183, 3, 0.15);
+}
+
+.page-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--chalk-dim);
+  padding: 0.9rem 0.25rem;
+  margin-right: 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.page-tab:hover { color: var(--chalk); }
+.page-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+.page.hidden { display: none; }
+
+.db-reco {
+  margin: 1.25rem 2rem 0;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 183, 3, 0.2);
+  border-left: 3px solid #6ea86e;
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+}
+
+.db-reco-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--chalk-dim);
+  margin-bottom: 0.5rem;
+}
+
+.db-reco-pick { font-size: 1rem; font-weight: 700; color: #6ea86e; margin-bottom: 0.6rem; }
+
+.db-reco-bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+}
+
+.db-reco-bar-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--chalk-dim); margin-bottom: 0.2rem; }
+.db-reco-bar-track { background: rgba(0,0,0,0.4); border-radius: 3px; height: 6px; overflow: hidden; }
+.db-reco-bar-fill { height: 100%; background: var(--chalk-dim); border-radius: 3px; }
+.db-reco-bar-fill.met { background: #6ea86e; }
+.db-reco-bar-fill.recommended { background: var(--amber); }
+
+.db-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+}
+
+.db-search {
+  flex: 1;
+  min-width: 160px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,183,3,0.2);
+  color: var(--chalk);
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.db-tab, .db-toggle {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,183,3,0.2);
+  color: var(--chalk-dim);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.db-tab.active, .db-toggle.active { background: var(--amber); color: #1a1300; border-color: var(--amber); }
+
+.db-list { padding: 0.5rem 2rem 2rem; }
+
+.db-tier-head {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--amber);
+  font-weight: 700;
+  margin: 1.25rem 0 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(255,183,3,0.15);
+}
+
+.db-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.db-row:hover { background: rgba(0,0,0,0.25); border-color: rgba(255,183,3,0.15); }
+.db-row.mine { background: rgba(110,168,110,0.12); border-color: #6ea86e; }
+.db-row.mine .db-name { color: #6ea86e; }
+.db-row.gone { opacity: 0.35; }
+.db-row.gone .db-name { text-decoration: line-through; }
+
+.db-rank { font-family: Consolas, monospace; color: var(--chalk-dim); font-size: 0.8rem; text-align: right; }
+.db-name { font-weight: 700; }
+.db-meta { font-size: 0.7rem; color: var(--chalk-dim); }
+
+.db-pos-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255,183,3,0.15);
+  color: var(--amber);
+}
+
+.db-star { color: var(--amber); margin-right: 0.2rem; }
+.db-watch-star { color: #5b8bb0; margin-right: 0.2rem; }
+
+.db-draft-btn {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255,183,3,0.2);
+  background: transparent;
+  color: var(--chalk-dim);
+  white-space: nowrap;
+}
+
+.db-row.gone .db-draft-btn { background: var(--amber-dim); color: var(--chalk); }
+.db-row.mine .db-draft-btn { background: #6ea86e; color: #07281896; }
+
+.db-footer {
+  position: sticky;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  border-top: 1px solid rgba(255,183,3,0.15);
+  padding: 0.7rem 2rem;
+  font-size: 0.8rem;
+  color: var(--chalk-dim);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.db-reset {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pb-intro { color: var(--chalk-dim); padding: 1rem 2rem 0; font-size: 0.9rem; }
+
+.pb-rule {
+  margin: 1rem 2rem;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,183,3,0.2);
+  border-left: 3px solid var(--amber);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+}
+
+.pb-rule h3 { margin: 0 0 0.4rem; font-size: 0.9rem; text-transform: uppercase; }
+.pb-rule p { margin: 0; font-size: 0.85rem; color: var(--chalk-dim); line-height: 1.5; white-space: pre-line; }
+.pb-evidence { margin-top: 0.5rem; font-size: 0.75rem; color: #8a8f86; font-style: italic; }

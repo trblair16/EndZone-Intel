@@ -15,7 +15,14 @@
     </div>
   </header>
 
-  <main class="grid">
+  <nav class="page-nav">
+    <button class="page-tab active" data-page="dashboard">Dashboard</button>
+    <button class="page-tab" data-page="draftboard">Draft Board</button>
+    <button class="page-tab" data-page="playbook">Playbook</button>
+  </nav>
+
+  <main class="page" id="page-dashboard">
+  <div class="grid">
     <section class="card" id="roster-card">
       <h2>My Roster</h2>
       <div class="card-body" id="roster-body">Loading…</div>
@@ -35,8 +42,58 @@
       <h2>Recent Transactions</h2>
       <div class="card-body" id="transactions-body">Loading…</div>
     </section>
+
+    <section class="card" id="roster-flags-card">
+      <h2>Roster Risk Flags</h2>
+      <div class="card-body" id="roster-flags-body">Loading…</div>
+    </section>
+
+    <section class="card" id="free-agent-matches-card">
+      <h2>Free Agent Target Matches</h2>
+      <div class="card-body" id="free-agent-matches-body">Loading…</div>
+    </section>
+  </div>
+  </main>
+
+  <main class="page hidden" id="page-draftboard">
+    <div class="db-reco" id="db-reco">
+      <div class="db-reco-top">
+        <span class="db-reco-title">Draft Assistant</span>
+        <span id="db-reco-round">Round 1</span>
+      </div>
+      <div class="db-reco-pick" id="db-reco-pick">Recommended: Best available RB or WR</div>
+      <div class="db-reco-bars" id="db-reco-bars"></div>
+    </div>
+
+    <div class="db-controls">
+      <input class="db-search" id="db-search" placeholder="Search a player..." />
+      <button class="db-tab active" data-pos="ALL">All</button>
+      <button class="db-tab" data-pos="QB">QB</button>
+      <button class="db-tab" data-pos="RB">RB</button>
+      <button class="db-tab" data-pos="WR">WR</button>
+      <button class="db-tab" data-pos="TE">TE</button>
+      <button class="db-tab" data-pos="DST">D/ST</button>
+      <button class="db-tab" data-pos="K">K</button>
+      <button class="db-toggle" id="db-toggle-targets">&#9733; My Targets</button>
+      <button class="db-toggle" id="db-toggle-watch">&#9734; Watch List</button>
+      <button class="db-toggle" id="db-hide-drafted">Hide drafted</button>
+    </div>
+
+    <div class="db-list" id="db-list"></div>
+
+    <div class="db-footer">
+      <span id="db-count">Loading board...</span>
+      <button class="db-reset" id="db-reset">Reset drafted picks</button>
+    </div>
+  </main>
+
+  <main class="page hidden" id="page-playbook">
+    <div class="pb-intro">Rules built from what actually happened to Team Nepotism in 2025 — not generic advice.</div>
+    <div id="pb-list">Loading…</div>
   </main>
 
   <script src="/app.js"></script>
+  <script src="/draftboard.js"></script>
+  <script src="/playbook.js"></script>
 </body>
 </html>
