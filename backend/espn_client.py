@@ -86,8 +86,16 @@ class ESPNProvider(LeagueProvider):
 
     def get_matchups(self, week: Optional[int] = None) -> list:
         week = week or self._league.current_week
+        try:
+            box_scores = self._league.box_scores(week)
+        except KeyError:
+            # espn-api expects a roster-for-scoring-period entry per team, which
+            # doesn't exist until the league has drafted. Pre-draft, "no
+            # matchups yet" is correct, not an error.
+            return []
+
         matchups = []
-        for box in self._league.box_scores(week):
+        for box in box_scores:
             matchups.append(
                 {
                     "week": week,
