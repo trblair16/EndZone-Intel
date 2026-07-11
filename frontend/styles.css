@@ -347,3 +347,9 @@ th {
 .pb-rule h3 { margin: 0 0 0.4rem; font-size: 0.9rem; text-transform: uppercase; }
 .pb-rule p { margin: 0; font-size: 0.85rem; color: var(--chalk-dim); line-height: 1.5; white-space: pre-line; }
 .pb-evidence { margin-top: 0.5rem; font-size: 0.75rem; color: #8a8f86; font-style: italic; }
+
+.db-live-status {
+  font-size: 0.75rem;
+  color: var(--chalk-dim);
+  align-self: center;
+}

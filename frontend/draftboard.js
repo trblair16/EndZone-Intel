@@ -9,6 +9,8 @@ let dbTargetsOnly = false;
 let dbWatchOnly = false;
 let dbSearchTerm = '';
 let dbLoaded = false;
+let dbLiveInterval = null;
+let dbLiveOn = false;
 
 function renderDbRecommendation() {
   if (!dbRecommendation) return;
@@ -106,6 +108,37 @@ async function markDraftState(name) {
   renderDbList();
 }
 
+async function pollLiveDraft() {
+  const statusEl = document.getElementById('db-live-status');
+  try {
+    const res = await fetch('/api/draft/live-sync', { method: 'POST' });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const body = await res.json();
+    dbPlayers = body.players;
+    dbRecommendation = body.recommendation;
+    renderDbRecommendation();
+    renderDbList();
+    statusEl.textContent = 'Live Draft Mode: ON — last synced just now';
+  } catch (err) {
+    statusEl.textContent = 'Live Draft Mode: ON — sync issue, retrying...';
+  }
+}
+
+function setLiveDraftMode(on) {
+  dbLiveOn = on;
+  const btn = document.getElementById('db-live-toggle');
+  const statusEl = document.getElementById('db-live-status');
+  btn.classList.toggle('active', on);
+  if (on) {
+    pollLiveDraft();
+    dbLiveInterval = setInterval(pollLiveDraft, 5000);
+  } else {
+    clearInterval(dbLiveInterval);
+    dbLiveInterval = null;
+    statusEl.textContent = '';
+  }
+}
+
 async function loadDraftBoard() {
   if (dbLoaded) return;
   dbLoaded = true;
@@ -132,6 +165,7 @@ document.querySelectorAll('.db-tab').forEach((tab) => {
 document.getElementById('db-toggle-targets').addEventListener('click', (e) => { dbTargetsOnly = !dbTargetsOnly; e.target.classList.toggle('active', dbTargetsOnly); renderDbList(); });
 document.getElementById('db-toggle-watch').addEventListener('click', (e) => { dbWatchOnly = !dbWatchOnly; e.target.classList.toggle('active', dbWatchOnly); renderDbList(); });
 document.getElementById('db-hide-drafted').addEventListener('click', (e) => { dbHideDrafted = !dbHideDrafted; e.target.textContent = dbHideDrafted ? 'Show drafted' : 'Hide drafted'; renderDbList(); });
+document.getElementById('db-live-toggle').addEventListener('click', () => { setLiveDraftMode(!dbLiveOn); });
 document.getElementById('db-reset').addEventListener('click', async () => {
   if (!confirm('Clear all drafted marks?')) return;
   const res = await fetch('/api/players/reset-draft-state', { method: 'POST' });
