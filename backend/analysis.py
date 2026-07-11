@@ -89,3 +89,11 @@ def reconcile_live_picks(draft_state: dict, live_picks: list, players: list, my_
             continue
         updated[name] = "mine" if pick["team_id"] == my_team_id else "gone"
     return updated
+
+
+def snake_pick_numbers(slot: int, rounds: int = 16, league_size: int = LEAGUE_SIZE) -> list:
+    picks = []
+    for round_ in range(1, rounds + 1):
+        pick_in_round = slot if round_ % 2 == 1 else league_size - slot + 1
+        picks.append((round_ - 1) * league_size + pick_in_round)
+    return picks
