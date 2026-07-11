@@ -4,7 +4,7 @@ Pure functions only - no ESPN or FastAPI imports, so this stays testable
 and reusable independent of how the data got here.
 """
 
-LEAGUE_SIZE = 12
+LEAGUE_SIZE = 10  # official as of 2026-07 - update if the league grows back to 12
 POSITION_TARGETS = {
     "RB": {"min": 5, "max": 6, "earliest": 1, "label": "RB"},
     "WR": {"min": 5, "max": 6, "earliest": 1, "label": "WR"},

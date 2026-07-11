@@ -35,10 +35,11 @@ plausible queue at each one — before the live draft even starts.
   N is gone by the time N rank-ordered players have been taken league-wide.
   This is a known simplification, not a competitive AI opponent.
 - Configurable league size / roster settings pulled from ESPN. Stays
-  hardcoded to `LEAGUE_SIZE = 12` and the existing `POSITION_TARGETS` shape
-  from `analysis.py`, consistent with the rest of the app today. Pulling
-  real league settings from ESPN is tracked separately (original project
-  spec, Phase 3).
+  hardcoded to the existing `LEAGUE_SIZE` constant and `POSITION_TARGETS`
+  shape from `analysis.py` (10 teams as of 2026-07, subject to change if the
+  league grows - update the constant, not this doc, if that happens),
+  consistent with the rest of the app today. Pulling real league settings
+  from ESPN is tracked separately (original project spec, Phase 3).
 - Persisting more than one simulation at a time — starting a new slot
   simulation overwrites the previous one (same "single-user tool" tradeoff
   used elsewhere in this app).
