@@ -97,3 +97,28 @@ def snake_pick_numbers(slot: int, rounds: int = 16, league_size: int = LEAGUE_SI
         pick_in_round = slot if round_ % 2 == 1 else league_size - slot + 1
         picks.append((round_ - 1) * league_size + pick_in_round)
     return picks
+
+
+def simulate_board_at_pick(players: list, sim_state: dict, overall_pick: int) -> dict:
+    effective_state = dict(sim_state)
+    for p in players:
+        name = p["name"]
+        if name in effective_state:
+            continue
+        if p["rank"] <= overall_pick - 1:
+            effective_state[name] = "gone"
+
+    recommendation = compute_recommendation(players, effective_state)
+
+    available = [
+        p for p in players
+        if effective_state.get(p["name"]) not in ("mine", "gone")
+    ]
+    available.sort(key=lambda p: (p["tier"], p["rank"]))
+
+    return {
+        "round": recommendation["round"],
+        "counts": recommendation["counts"],
+        "scored": recommendation["scored"],
+        "available": available[:10],
+    }
