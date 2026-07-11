@@ -135,5 +135,90 @@ def free_agent_matches_endpoint():
     return {"data": analysis.free_agent_matches(cached["data"], players_data.PLAYERS)}
 
 
+def _simulator_state_payload():
+    slot = (db.get_cache("sim_slot") or {"data": None})["data"]
+    if slot is None:
+        return {"slot": None, "picks": [], "current_pick_index": 0, "roster": [], "projection": None}
+
+    sim_state = (db.get_cache("sim_draft_state") or {"data": {}})["data"]
+    pick_index = (db.get_cache("sim_pick_index") or {"data": 0})["data"]
+    picks = analysis.snake_pick_numbers(slot)
+    roster = list(sim_state.keys())
+
+    if pick_index >= len(picks):
+        projection = None
+    else:
+        overall_pick = picks[pick_index]
+        projection = analysis.simulate_board_at_pick(players_data.PLAYERS, sim_state, overall_pick)
+
+    return {
+        "slot": slot,
+        "picks": picks,
+        "current_pick_index": pick_index,
+        "roster": roster,
+        "projection": projection,
+    }
+
+
+class SimulatorStartRequest(BaseModel):
+    slot: int
+
+
+@app.post("/api/simulator/start")
+def simulator_start(body: SimulatorStartRequest):
+    if not (1 <= body.slot <= analysis.LEAGUE_SIZE):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Slot must be between 1 and {analysis.LEAGUE_SIZE}.",
+        )
+    db.set_cache("sim_slot", body.slot)
+    db.set_cache("sim_draft_state", {})
+    db.set_cache("sim_pick_index", 0)
+    return _simulator_state_payload()
+
+
+@app.get("/api/simulator/state")
+def simulator_state():
+    return _simulator_state_payload()
+
+
+class SimulatorPickRequest(BaseModel):
+    name: str
+
+
+@app.post("/api/simulator/pick")
+def simulator_pick(body: SimulatorPickRequest):
+    slot = (db.get_cache("sim_slot") or {"data": None})["data"]
+    if slot is None:
+        raise HTTPException(status_code=400, detail="No simulation in progress. Start one first.")
+
+    sim_state = (db.get_cache("sim_draft_state") or {"data": {}})["data"]
+    pick_index = (db.get_cache("sim_pick_index") or {"data": 0})["data"]
+    updated = dict(sim_state)
+    updated[body.name] = "mine"
+    db.set_cache("sim_draft_state", updated)
+    db.set_cache("sim_pick_index", pick_index + 1)
+    return _simulator_state_payload()
+
+
+@app.post("/api/simulator/skip")
+def simulator_skip():
+    slot = (db.get_cache("sim_slot") or {"data": None})["data"]
+    if slot is None:
+        raise HTTPException(status_code=400, detail="No simulation in progress. Start one first.")
+
+    pick_index = (db.get_cache("sim_pick_index") or {"data": 0})["data"]
+    db.set_cache("sim_pick_index", pick_index + 1)
+    return _simulator_state_payload()
+
+
+@app.post("/api/simulator/reset")
+def simulator_reset():
+    db.set_cache("sim_slot", None)
+    db.set_cache("sim_draft_state", {})
+    db.set_cache("sim_pick_index", 0)
+    return _simulator_state_payload()
+
+
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
