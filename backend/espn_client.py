@@ -33,6 +33,10 @@ class LeagueProvider(ABC):
     def get_free_agents(self, size: int = 50, position: Optional[str] = None) -> list:
         ...
 
+    @abstractmethod
+    def get_live_picks(self) -> list:
+        ...
+
 
 class ESPNProvider(LeagueProvider):
     def __init__(self, league_id: int, year: int, espn_s2: Optional[str] = None, swid: Optional[str] = None):
@@ -125,6 +129,16 @@ class ESPNProvider(LeagueProvider):
 
     def get_free_agents(self, size: int = 50, position: Optional[str] = None) -> list:
         return [self._serialize_player(p) for p in self._league.free_agents(size=size, position=position)]
+
+    def get_live_picks(self) -> list:
+        self._league.refresh_draft(refresh_players=True)
+        return [
+            {
+                "team_id": pick.team.team_id if pick.team else None,
+                "player_name": pick.playerName,
+            }
+            for pick in self._league.draft
+        ]
 
 
 def build_provider() -> ESPNProvider:
