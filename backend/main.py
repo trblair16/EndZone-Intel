@@ -98,6 +98,22 @@ def reset_draft_state():
     return _players_payload()
 
 
+@app.post("/api/draft/live-sync")
+def live_sync():
+    try:
+        provider = build_provider()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    live_picks = provider.get_live_picks()
+    current = (db.get_cache("draft_state") or {"data": {}})["data"]
+    updated = analysis.reconcile_live_picks(
+        current, live_picks, players_data.PLAYERS, config.team_id_int()
+    )
+    db.set_cache("draft_state", updated)
+    return _players_payload()
+
+
 @app.get("/api/playbook")
 def playbook():
     return {"rules": players_data.PLAYBOOK_RULES}
