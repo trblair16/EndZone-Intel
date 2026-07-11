@@ -353,3 +353,38 @@ th {
   color: var(--chalk-dim);
   align-self: center;
 }
+
+.sim-intro { color: var(--chalk-dim); padding: 1rem 2rem 0; font-size: 0.9rem; }
+
+.sim-slot-picker { padding: 1rem 2rem; }
+
+.sim-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 0.5rem;
+  max-width: 500px;
+  margin-top: 1rem;
+}
+
+.sim-slot-btn {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,183,3,0.2);
+  color: var(--chalk);
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.sim-slot-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+.sim-roster {
+  margin: 1rem 2rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,183,3,0.2);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--chalk-dim);
+}

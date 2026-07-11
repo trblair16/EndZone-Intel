@@ -216,5 +216,6 @@ document.querySelectorAll('.page-tab').forEach((tab) => {
     document.getElementById(`page-${page}`).classList.remove('hidden');
     if (page === 'draftboard') loadDraftBoard();
     if (page === 'playbook') loadPlaybook();
+    if (page === 'simulator') loadSimulator();
   });
 });

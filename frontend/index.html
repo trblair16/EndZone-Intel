@@ -19,6 +19,7 @@
     <button class="page-tab active" data-page="dashboard">Dashboard</button>
     <button class="page-tab" data-page="draftboard">Draft Board</button>
     <button class="page-tab" data-page="playbook">Playbook</button>
+    <button class="page-tab" data-page="simulator">Draft Simulator</button>
   </nav>
 
   <main class="page" id="page-dashboard">
@@ -94,8 +95,38 @@
     <div id="pb-list">Loading…</div>
   </main>
 
+  <main class="page hidden" id="page-simulator">
+    <div id="sim-slot-picker" class="sim-slot-picker">
+      <p class="sim-intro">Pick your draft slot to preview a projected board at each of your picks.</p>
+      <div class="sim-slot-grid" id="sim-slot-grid"></div>
+    </div>
+
+    <div id="sim-board" class="hidden">
+      <div class="db-reco">
+        <div class="db-reco-top">
+          <span class="db-reco-title">Simulated Pick</span>
+          <span id="sim-pick-label">Pick 1</span>
+        </div>
+        <div class="db-reco-bars" id="sim-reco-bars"></div>
+      </div>
+
+      <div class="sim-roster" id="sim-roster"></div>
+
+      <div class="db-list" id="sim-available"></div>
+
+      <div class="db-footer">
+        <span id="sim-status"></span>
+        <div>
+          <button class="db-toggle" id="sim-skip">Skip</button>
+          <button class="db-reset" id="sim-reset">Reset simulation</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
   <script src="/app.js"></script>
   <script src="/draftboard.js"></script>
   <script src="/playbook.js"></script>
+  <script src="/simulator.js"></script>
 </body>
 </html>
