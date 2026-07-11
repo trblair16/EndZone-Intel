@@ -1,7 +1,6 @@
 :root {
   --turf: #0b3d24;
   --turf-dark: #07281896;
-  --turf-line: #1c6b3f;
   --chalk: #f2f3ee;
   --chalk-dim: #b9c2b7;
   --amber: #ffb703;
@@ -16,9 +15,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    repeating-linear-gradient(90deg, var(--turf-line) 0 2px, transparent 2px 80px),
-    var(--turf);
+  background: var(--turf);
   color: var(--chalk);
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
