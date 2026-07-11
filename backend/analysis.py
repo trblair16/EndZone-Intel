@@ -78,3 +78,14 @@ def free_agent_matches(free_agents: list, players: list) -> list:
                 "tier": match["tier"], "target": match["target"], "watch": match["watch"],
             })
     return matches
+
+
+def reconcile_live_picks(draft_state: dict, live_picks: list, players: list, my_team_id) -> dict:
+    known_names = {p["name"] for p in players}
+    updated = dict(draft_state)
+    for pick in live_picks:
+        name = pick["player_name"]
+        if name not in known_names:
+            continue
+        updated[name] = "mine" if pick["team_id"] == my_team_id else "gone"
+    return updated
