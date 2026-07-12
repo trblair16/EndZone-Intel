@@ -99,13 +99,23 @@ def snake_pick_numbers(slot: int, rounds: int = 16, league_size: int = LEAGUE_SI
     return picks
 
 
+def _expected_pick(player: dict) -> int:
+    # Real ADP overall-pick data (where we have it) reflects actual draft
+    # order more accurately than the hand-curated tier rank - the two
+    # diverge meaningfully for some players (e.g. Ashton Jeanty is rank 15
+    # in the hand-curated tiers but ADP has him going 10th overall). Prefer
+    # ADP when present, fall back to rank for the players we don't have
+    # ADP data for yet.
+    return player.get("adp_pick_overall", player["rank"])
+
+
 def simulate_board_at_pick(players: list, sim_state: dict, overall_pick: int) -> dict:
     effective_state = dict(sim_state)
     for p in players:
         name = p["name"]
         if name in effective_state:
             continue
-        if p["rank"] <= overall_pick - 1:
+        if _expected_pick(p) <= overall_pick - 1:
             effective_state[name] = "gone"
 
     recommendation = compute_recommendation(players, effective_state)
@@ -114,7 +124,7 @@ def simulate_board_at_pick(players: list, sim_state: dict, overall_pick: int) ->
         p for p in players
         if effective_state.get(p["name"]) not in ("mine", "gone")
     ]
-    available.sort(key=lambda p: (p["tier"], p["rank"]))
+    available.sort(key=_expected_pick)
 
     return {
         "round": recommendation["round"],
