@@ -115,11 +115,11 @@ _EXPECTED_PICK_OVERRIDES = {
     "Bhayshul Tuten": 60,
     "Caleb Williams": 61,
     "Matthew Stafford": 63,
-    "Colston Loveland": 65,
     "Tyler Shough": 93,
-    "Kyle Pitts Sr.": 95,
-    "Tyler Warren": 97,
     "Stefon Diggs": 115,
+    # Colston Loveland, Kyle Pitts Sr., and Tyler Warren were researched and
+    # given real adp_pick_overall values in players.py - removed here since
+    # _expected_pick() checks adp_pick_overall first anyway.
 }
 
 
