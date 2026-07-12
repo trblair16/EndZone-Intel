@@ -99,14 +99,43 @@ def snake_pick_numbers(slot: int, rounds: int = 16, league_size: int = LEAGUE_SI
     return picks
 
 
+# The rank-collision fix in players.py ("Dedupe rank values" commit)
+# renumbered a handful of players far outside their tier's normal range to
+# get unique ranks - fine for its own purpose (breaking display ties within
+# a tier), but it corrupts these specific players' use as a fallback
+# "expected pick" for simulator depletion, since their rank no longer
+# resembles real draft timing at all (e.g. Drake Maye is tier 3, alongside
+# QBs ranked in the low 30s, but his rank was pushed to 95). These are
+# rough tier-consistent estimates, not researched ADP - just enough to stop
+# these specific players from lingering in the simulator's "available" pool
+# many rounds past where they plausibly belong.
+_EXPECTED_PICK_OVERRIDES = {
+    "Drake Maye": 36,
+    "Jalen Hurts": 40,
+    "Bhayshul Tuten": 60,
+    "Caleb Williams": 61,
+    "Matthew Stafford": 63,
+    "Colston Loveland": 65,
+    "Tyler Shough": 93,
+    "Kyle Pitts Sr.": 95,
+    "Tyler Warren": 97,
+    "Stefon Diggs": 115,
+}
+
+
 def _expected_pick(player: dict) -> int:
     # Real ADP overall-pick data (where we have it) reflects actual draft
     # order more accurately than the hand-curated tier rank - the two
     # diverge meaningfully for some players (e.g. Ashton Jeanty is rank 15
     # in the hand-curated tiers but ADP has him going 10th overall). Prefer
     # ADP when present, fall back to rank for the players we don't have
-    # ADP data for yet.
-    return player.get("adp_pick_overall", player["rank"])
+    # ADP data for yet - except the handful in _EXPECTED_PICK_OVERRIDES,
+    # whose rank is known to be unreliable for this specific purpose.
+    if "adp_pick_overall" in player:
+        return player["adp_pick_overall"]
+    if player["name"] in _EXPECTED_PICK_OVERRIDES:
+        return _EXPECTED_PICK_OVERRIDES[player["name"]]
+    return player["rank"]
 
 
 def simulate_board_at_pick(players: list, sim_state: dict, overall_pick: int) -> dict:
