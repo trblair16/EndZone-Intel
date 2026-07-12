@@ -17,7 +17,20 @@ Personal-use local app. No hosting — runs on localhost only.
   instead of a rewrite
 
 ## Current phase
-Phase 1 (ESPN data mirror) and Phase 2 (player analysis / draft board port,
-see docs/superpowers/specs/2026-07-08-player-analysis-design.md) are done.
-Next up: pick-position draft simulator and weekly matchup/opponent analysis
-(each gets its own spec before implementation).
+Done: Phase 1 (ESPN data mirror), Phase 2 (player analysis / draft board
+port), live draft auto-sync (Live Draft Mode), and the pick-position draft
+simulator. See docs/superpowers/specs/ for design docs on each.
+
+Player data now includes 2026 ADP fields (adp_pick_overall/adp_round/
+adp_slot/delta_flag/is_rookie/note) for players covered by the July 2026
+4for4 pull - not all 167 players have these yet. The draft simulator prefers
+ADP over hand-curated rank when both exist (see `_expected_pick` in
+analysis.py); the main Draft Board still groups by hand-curated tier.
+
+Next up: weekly matchup/opponent analysis (start/sit, transaction-cap
+tracking per the original Spec.MD Phase 3) - needs its own spec before
+implementation. Also worth revisiting: surfacing ADP/delta-flag info in the
+Draft Board UI itself (deferred as "data only" during the ADP import), and
+Josh Jacobs's legal-risk note currently isn't a real flag category (stored
+as a "note" field only, doesn't show on the Roster Risk Flags card) - would
+need a frontend flag-map update in draftboard.js to fix properly.
