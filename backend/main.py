@@ -195,6 +195,7 @@ def _simulator_state_payload():
 
     sim_state = (db.get_cache("sim_draft_state") or {"data": {}})["data"]
     pick_index = (db.get_cache("sim_pick_index") or {"data": 0})["data"]
+    espn_rankings = (db.get_cache("espn_rankings") or {"data": {}})["data"]
     picks = analysis.snake_pick_numbers(slot)
     roster = list(sim_state.keys())
 
@@ -202,7 +203,9 @@ def _simulator_state_payload():
         projection = None
     else:
         overall_pick = picks[pick_index]
-        projection = analysis.simulate_board_at_pick(players_data.PLAYERS, sim_state, overall_pick)
+        projection = analysis.simulate_board_at_pick(
+            players_data.PLAYERS, sim_state, overall_pick, espn_rankings
+        )
 
     return {
         "slot": slot,

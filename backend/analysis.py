@@ -123,28 +123,31 @@ _EXPECTED_PICK_OVERRIDES = {
 }
 
 
-def _expected_pick(player: dict) -> int:
+def _expected_pick(player: dict, espn_rankings: dict = None) -> int:
     # Real ADP overall-pick data (where we have it) reflects actual draft
     # order more accurately than the hand-curated tier rank - the two
     # diverge meaningfully for some players (e.g. Ashton Jeanty is rank 15
     # in the hand-curated tiers but ADP has him going 10th overall). Prefer
-    # ADP when present, fall back to rank for the players we don't have
-    # ADP data for yet - except the handful in _EXPECTED_PICK_OVERRIDES,
-    # whose rank is known to be unreliable for this specific purpose.
+    # ADP when present, then ESPN's own live-synced PPR rank (refreshes
+    # automatically on every sync, backfilling the players we don't have
+    # researched ADP for), then the handful of known-bad rank overrides,
+    # then finally the raw hand-curated rank as a last resort.
     if "adp_pick_overall" in player:
         return player["adp_pick_overall"]
+    if espn_rankings and player["name"] in espn_rankings:
+        return espn_rankings[player["name"]]
     if player["name"] in _EXPECTED_PICK_OVERRIDES:
         return _EXPECTED_PICK_OVERRIDES[player["name"]]
     return player["rank"]
 
 
-def simulate_board_at_pick(players: list, sim_state: dict, overall_pick: int) -> dict:
+def simulate_board_at_pick(players: list, sim_state: dict, overall_pick: int, espn_rankings: dict = None) -> dict:
     effective_state = dict(sim_state)
     for p in players:
         name = p["name"]
         if name in effective_state:
             continue
-        if _expected_pick(p) <= overall_pick - 1:
+        if _expected_pick(p, espn_rankings) <= overall_pick - 1:
             effective_state[name] = "gone"
 
     recommendation = compute_recommendation(players, effective_state)
@@ -153,7 +156,7 @@ def simulate_board_at_pick(players: list, sim_state: dict, overall_pick: int) ->
         p for p in players
         if effective_state.get(p["name"]) not in ("mine", "gone")
     ]
-    available.sort(key=_expected_pick)
+    available.sort(key=lambda p: _expected_pick(p, espn_rankings))
 
     return {
         "round": recommendation["round"],

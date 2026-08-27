@@ -6,6 +6,7 @@ is the only thing here that knows about espn-api's raw object shapes -
 adding Yahoo/Sleeper later means writing a new provider class, not
 touching anything that consumes this interface.
 """
+import json
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -39,6 +40,10 @@ class LeagueProvider(ABC):
 
     @abstractmethod
     def get_player_news(self, player_id: int, size: int = 5) -> list:
+        ...
+
+    @abstractmethod
+    def get_espn_rankings(self, size: int = 300) -> dict:
         ...
 
 
@@ -159,6 +164,35 @@ class ESPNProvider(LeagueProvider):
             }
             for item in feed[:size]
         ]
+
+    def get_espn_rankings(self, size: int = 300) -> dict:
+        # Unverified assumption (never confirmed live against real ESPN
+        # credentials): a single size=300 request returns the full player
+        # pool without truncation. If it comes back thin, this needs
+        # offset-based pagination the way get_free_agents does internally -
+        # verify this against a real league before relying on it live.
+        params = {"view": "kona_player_info"}
+        headers = {
+            "x-fantasy-filter": json.dumps({
+                "players": {
+                    "limit": size,
+                    "sortDraftRanks": {"sortPriority": 100, "sortAsc": True, "value": "PPR"},
+                    "filterRanksForRankTypes": {"value": ["PPR"]},
+                }
+            })
+        }
+        try:
+            data = self._league.espn_request.league_get(params=params, headers=headers)
+        except Exception:
+            return {}
+        rankings = {}
+        for entry in data.get("players", []):
+            player = entry.get("player", {})
+            name = player.get("fullName")
+            ppr = player.get("draftRanksByRankType", {}).get("PPR", {})
+            if name and "rank" in ppr:
+                rankings[name] = ppr["rank"]
+        return rankings
 
 
 def build_provider() -> ESPNProvider:
