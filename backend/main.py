@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import analysis, db, league_settings
+from .bye_weeks import BYE_WEEKS
 from . import players as players_data
 from .espn_client import build_provider
 from .sync import run_sync
@@ -188,16 +189,28 @@ def player_news(player_id: int):
     return {"news": provider.get_player_news(player_id)}
 
 
+@app.get("/api/analysis/bye-weeks")
+def bye_weeks_endpoint():
+    cached = db.get_cache("roster")
+    if cached is None:
+        return {"data": []}
+    return {"data": analysis.bye_week_collisions(cached["data"].get("players", []), BYE_WEEKS)}
+
+
 def _simulator_state_payload():
     slot = (db.get_cache("sim_slot") or {"data": None})["data"]
     if slot is None:
-        return {"slot": None, "picks": [], "current_pick_index": 0, "roster": [], "projection": None}
+        return {"slot": None, "picks": [], "current_pick_index": 0, "roster": [], "projection": None, "bye_warnings": []}
 
     sim_state = (db.get_cache("sim_draft_state") or {"data": {}})["data"]
     pick_index = (db.get_cache("sim_pick_index") or {"data": 0})["data"]
     espn_rankings = (db.get_cache("espn_rankings") or {"data": {}})["data"]
     picks = analysis.snake_pick_numbers(slot)
     roster = list(sim_state.keys())
+
+    by_name = {p["name"]: p for p in players_data.PLAYERS}
+    roster_players = [by_name[name] for name in roster if name in by_name]
+    bye_warnings = analysis.bye_week_collisions(roster_players, BYE_WEEKS)
 
     if pick_index >= len(picks):
         projection = None
@@ -213,6 +226,7 @@ def _simulator_state_payload():
         "current_pick_index": pick_index,
         "roster": roster,
         "projection": projection,
+        "bye_warnings": bye_warnings,
     }
 
 

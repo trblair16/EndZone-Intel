@@ -39,6 +39,16 @@ function renderSimBoard() {
     ? `Simulated roster: ${simState.roster.join(', ')}`
     : 'Simulated roster: (no picks yet)';
 
+  const byeWarningEl = document.getElementById('sim-bye-warnings');
+  if (simState.bye_warnings && simState.bye_warnings.length > 0) {
+    byeWarningEl.textContent = simState.bye_warnings
+      .map((w) => `Week ${w.week}: ${w.players.join(', ')}`)
+      .join(' · ');
+    byeWarningEl.classList.remove('hidden');
+  } else {
+    byeWarningEl.classList.add('hidden');
+  }
+
   const statusEl = document.getElementById('sim-status');
 
   if (!simState.projection) {

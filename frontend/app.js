@@ -283,6 +283,17 @@ function renderFreeAgentMatches(data) {
   );
 }
 
+function renderByeWeeks(data) {
+  if (data.length === 0) {
+    setBody('bye-weeks-body', emptyState('No bye-week collisions on your roster.'));
+    return;
+  }
+  const rows = data
+    .map((w) => `<li>Week ${w.week}: ${w.players.join(', ')}</li>`)
+    .join('');
+  setBody('bye-weeks-body', `<ul class="bye-week-list">${rows}</ul>`);
+}
+
 const SECTIONS = [
   { key: 'roster', path: '/api/roster', render: renderRoster },
   { key: 'matchups', path: '/api/matchups', render: renderMatchups },
@@ -290,6 +301,7 @@ const SECTIONS = [
   { key: 'transactions', path: '/api/transactions', render: renderTransactions },
   { key: 'roster-flags', path: '/api/analysis/roster-flags', render: renderRosterFlags },
   { key: 'free-agent-matches', path: '/api/analysis/free-agent-matches', render: renderFreeAgentMatches },
+  { key: 'bye-weeks', path: '/api/analysis/bye-weeks', render: renderByeWeeks },
 ];
 
 async function loadSection(section, configured) {

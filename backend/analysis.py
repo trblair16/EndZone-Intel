@@ -91,6 +91,25 @@ def reconcile_live_picks(draft_state: dict, live_picks: list, players: list, my_
     return updated
 
 
+def bye_week_collisions(roster_players: list, bye_weeks: dict, threshold: int = 3) -> list:
+    """roster_players: list of {'name', 'pro_team'} dicts (works for both
+    the real roster and a simulated one). Returns [{'week': int, 'players': [...]}]
+    for any week with >= threshold players on bye."""
+    by_week = {}
+    for p in roster_players:
+        team = p.get("pro_team") or p.get("team")
+        week = bye_weeks.get(team)
+        if week is None:
+            continue
+        by_week.setdefault(week, []).append(p["name"])
+
+    return [
+        {"week": week, "players": names}
+        for week, names in sorted(by_week.items())
+        if len(names) >= threshold
+    ]
+
+
 def snake_pick_numbers(slot: int, rounds: int = 16, league_size: int = LEAGUE_SIZE) -> list:
     picks = []
     for round_ in range(1, rounds + 1):
