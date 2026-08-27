@@ -60,3 +60,10 @@ def all_cache_status() -> dict:
     rows = conn.execute("SELECT key, updated_at FROM cache").fetchall()
     conn.close()
     return {row["key"]: row["updated_at"] for row in rows}
+
+
+def clear_keys(keys) -> None:
+    conn = get_connection()
+    conn.executemany("DELETE FROM cache WHERE key = ?", [(k,) for k in keys])
+    conn.commit()
+    conn.close()

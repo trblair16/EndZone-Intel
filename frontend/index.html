@@ -10,10 +10,49 @@
   <header class="topbar">
     <h1>EndZone <span class="accent">Intel</span></h1>
     <div class="topbar-actions">
+      <span id="league-status" class="league-status"></span>
       <span id="sync-status" class="sync-status">checking status…</span>
+      <button id="league-settings-btn" class="btn-league">League Settings</button>
       <button id="sync-btn" class="btn-sync">Sync Now</button>
     </div>
   </header>
+
+  <div id="league-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2>League Settings</h2>
+      <p class="modal-hint">
+        Point the app at a different ESPN league (e.g. a one-off draft-day
+        league) without touching <code>.env</code>. Switching leagues clears
+        cached roster/standings/draft data for a clean slate.
+      </p>
+      <label>Label <span class="modal-optional">(optional, e.g. "Work League")</span>
+        <input type="text" id="ls-label" placeholder="Work League" />
+      </label>
+      <label>League ID
+        <input type="text" id="ls-league-id" placeholder="123456" />
+      </label>
+      <label>Year
+        <input type="text" id="ls-year" placeholder="2026" />
+      </label>
+      <label>ESPN_S2 cookie <span class="modal-optional">(private leagues)</span>
+        <input type="text" id="ls-espn-s2" placeholder="espn_s2 cookie value" />
+      </label>
+      <label>SWID cookie <span class="modal-optional">(private leagues)</span>
+        <input type="text" id="ls-swid" placeholder="{SWID-COOKIE-VALUE}" />
+      </label>
+      <label>Team ID <span class="modal-optional">(optional, your team in this league)</span>
+        <input type="text" id="ls-team-id" placeholder="3" />
+      </label>
+      <div class="modal-actions">
+        <button id="ls-reset-btn" class="btn-league-reset">Reset to .env default</button>
+        <div>
+          <button id="ls-cancel-btn" class="btn-league-cancel">Cancel</button>
+          <button id="ls-save-btn" class="btn-sync">Save &amp; Switch League</button>
+        </div>
+      </div>
+      <p id="ls-error" class="error-state hidden"></p>
+    </div>
+  </div>
 
   <nav class="page-nav">
     <button class="page-tab active" data-page="dashboard">Dashboard</button>

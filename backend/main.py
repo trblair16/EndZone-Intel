@@ -1,10 +1,11 @@
 from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import analysis, config, db
+from . import analysis, db, league_settings
 from . import players as players_data
 from .espn_client import build_provider
 from .sync import run_sync
@@ -16,13 +17,56 @@ db.init_db()
 
 @app.get("/api/status")
 def status():
+    active = league_settings.get_active()
     return {
-        "configured": config.is_configured(),
-        "league_id": config.LEAGUE_ID,
-        "year": config.YEAR,
-        "team_id": config.TEAM_ID,
+        "configured": league_settings.is_configured(),
+        "league_id": active["league_id"],
+        "year": active["year"],
+        "team_id": active["team_id"],
+        "label": active["label"],
+        "is_override": active["is_override"],
         "cache": db.all_cache_status(),
     }
+
+
+class LeagueSettingsRequest(BaseModel):
+    league_id: str
+    year: str = "2026"
+    espn_s2: Optional[str] = None
+    swid: Optional[str] = None
+    team_id: Optional[str] = None
+    label: Optional[str] = None
+
+
+def _league_settings_public(active: dict) -> dict:
+    return {
+        "league_id": active["league_id"],
+        "year": active["year"],
+        "team_id": active["team_id"],
+        "label": active["label"],
+        "is_override": active["is_override"],
+        "espn_s2": active["espn_s2"],
+        "swid": active["swid"],
+    }
+
+
+@app.get("/api/settings/league")
+def get_league_settings():
+    return _league_settings_public(league_settings.get_active())
+
+
+@app.post("/api/settings/league")
+def set_league_settings(body: LeagueSettingsRequest):
+    active = league_settings.set_active(
+        body.league_id, body.year, body.espn_s2, body.swid, body.team_id, body.label
+    )
+    return _league_settings_public(active)
+
+
+@app.post("/api/settings/league/reset")
+def reset_league_settings():
+    active = league_settings.reset_to_env()
+    return _league_settings_public(active)
 
 
 @app.post("/api/sync")
@@ -108,7 +152,7 @@ def live_sync():
     live_picks = provider.get_live_picks()
     current = (db.get_cache("draft_state") or {"data": {}})["data"]
     updated = analysis.reconcile_live_picks(
-        current, live_picks, players_data.PLAYERS, config.team_id_int()
+        current, live_picks, players_data.PLAYERS, league_settings.team_id_int()
     )
     db.set_cache("draft_state", updated)
     return _players_payload()

@@ -51,6 +51,121 @@ body {
   color: var(--chalk-dim);
 }
 
+.league-status {
+  font-size: 0.85rem;
+  color: var(--amber);
+}
+
+.btn-league {
+  background: transparent;
+  border: 1px solid rgba(255, 183, 3, 0.4);
+  color: var(--amber);
+  font-weight: 600;
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-league:hover {
+  background: rgba(255, 183, 3, 0.1);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: #0f2e1c;
+  border: 1px solid rgba(255, 183, 3, 0.3);
+  border-radius: 10px;
+  padding: 1.5rem 1.75rem;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal-hint {
+  font-size: 0.8rem;
+  color: var(--chalk-dim);
+  line-height: 1.4;
+  margin: 0 0 1rem;
+}
+
+.modal-card label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--chalk-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.85rem;
+}
+
+.modal-optional {
+  text-transform: none;
+  letter-spacing: normal;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.modal-card input {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 183, 3, 0.2);
+  color: var(--chalk);
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.btn-league-cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--chalk-dim);
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+
+.btn-league-reset {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
 .btn-sync {
   background: var(--amber);
   color: #1a1300;

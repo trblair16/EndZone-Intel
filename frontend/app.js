@@ -25,8 +25,14 @@ function errorState(message) {
 
 async function loadStatus() {
   const statusEl = document.getElementById('sync-status');
+  const leagueEl = document.getElementById('league-status');
   try {
     const status = await apiGet('/api/status');
+    leagueEl.textContent = status.label
+      ? `League: ${status.label} (${status.league_id})`
+      : status.league_id
+      ? `League: ${status.league_id}${status.is_override ? '' : ' (.env)'}`
+      : 'League: not set';
     if (!status.configured) {
       statusEl.innerHTML = 'not configured';
       return status;
@@ -42,6 +48,85 @@ async function loadStatus() {
   } catch (err) {
     statusEl.textContent = 'status unavailable';
     return null;
+  }
+}
+
+async function openLeagueModal() {
+  const modal = document.getElementById('league-modal');
+  const errEl = document.getElementById('ls-error');
+  errEl.classList.add('hidden');
+  try {
+    const current = await apiGet('/api/settings/league');
+    document.getElementById('ls-label').value = current.label || '';
+    document.getElementById('ls-league-id').value = current.league_id || '';
+    document.getElementById('ls-year').value = current.year || '2026';
+    document.getElementById('ls-espn-s2').value = current.espn_s2 || '';
+    document.getElementById('ls-swid').value = current.swid || '';
+    document.getElementById('ls-team-id').value = current.team_id || '';
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeLeagueModal() {
+  document.getElementById('league-modal').classList.add('hidden');
+}
+
+async function saveLeagueSettings() {
+  const errEl = document.getElementById('ls-error');
+  errEl.classList.add('hidden');
+  const body = {
+    label: document.getElementById('ls-label').value.trim() || null,
+    league_id: document.getElementById('ls-league-id').value.trim(),
+    year: document.getElementById('ls-year').value.trim() || '2026',
+    espn_s2: document.getElementById('ls-espn-s2').value.trim() || null,
+    swid: document.getElementById('ls-swid').value.trim() || null,
+    team_id: document.getElementById('ls-team-id').value.trim() || null,
+  };
+  if (!body.league_id) {
+    errEl.textContent = 'League ID is required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  try {
+    const res = await fetch('/api/settings/league', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const result = await res.json().catch(() => null);
+    if (!res.ok) {
+      const detail = result && result.detail;
+      throw new Error(typeof detail === 'string' ? detail : 'Failed to save league settings.');
+    }
+    closeLeagueModal();
+    await loadAll();
+    dbLoaded = false;
+    pbLoaded = false;
+    simLoaded = false;
+    await Promise.all([loadDraftBoard(), loadPlaybook(), loadSimulator()]);
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+async function resetLeagueSettings() {
+  if (!confirm('Reset to the .env-configured league? This clears cached data from the current league.')) return;
+  try {
+    await fetch('/api/settings/league/reset', { method: 'POST' });
+    closeLeagueModal();
+    await loadAll();
+    dbLoaded = false;
+    pbLoaded = false;
+    simLoaded = false;
+    await Promise.all([loadDraftBoard(), loadPlaybook(), loadSimulator()]);
+  } catch (err) {
+    const errEl = document.getElementById('ls-error');
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
   }
 }
 
@@ -205,6 +290,10 @@ async function syncNow() {
 }
 
 document.getElementById('sync-btn').addEventListener('click', syncNow);
+document.getElementById('league-settings-btn').addEventListener('click', openLeagueModal);
+document.getElementById('ls-cancel-btn').addEventListener('click', closeLeagueModal);
+document.getElementById('ls-save-btn').addEventListener('click', saveLeagueSettings);
+document.getElementById('ls-reset-btn').addEventListener('click', resetLeagueSettings);
 loadAll();
 
 document.querySelectorAll('.page-tab').forEach((tab) => {

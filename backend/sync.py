@@ -3,12 +3,12 @@
 Shared by the /api/sync endpoint and the standalone refresh.py script so
 there's exactly one place that knows what "a sync" means.
 """
-from . import config, db
+from . import db, league_settings
 from .espn_client import LeagueProvider
 
 
 def run_sync(provider: LeagueProvider) -> tuple[dict, dict]:
-    team_id = config.team_id_int()
+    team_id = league_settings.team_id_int()
     jobs = (
         ("roster", lambda: provider.get_roster(team_id)),
         ("standings", lambda: provider.get_standings()),

@@ -9,7 +9,7 @@ touching anything that consumes this interface.
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from . import config
+from . import league_settings
 
 
 class LeagueProvider(ABC):
@@ -142,15 +142,18 @@ class ESPNProvider(LeagueProvider):
 
 
 def build_provider() -> ESPNProvider:
-    """Constructs a provider from .env, or raises RuntimeError with a friendly message."""
-    if not config.is_configured():
+    """Constructs a provider from the active league config (a runtime-set
+    override, if any, otherwise .env), or raises RuntimeError with a
+    friendly message."""
+    active = league_settings.get_active()
+    if not active["league_id"]:
         raise RuntimeError(
             "ESPN league not configured yet. Add LEAGUE_ID (and ESPN_S2/SWID for "
-            "private leagues) to .env, then try again."
+            "private leagues) to .env, or set it via League Settings, then try again."
         )
     return ESPNProvider(
-        league_id=int(config.LEAGUE_ID),
-        year=int(config.YEAR),
-        espn_s2=config.ESPN_S2,
-        swid=config.SWID,
+        league_id=int(active["league_id"]),
+        year=int(active["year"]),
+        espn_s2=active["espn_s2"],
+        swid=active["swid"],
     )
