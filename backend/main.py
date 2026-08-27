@@ -179,6 +179,15 @@ def free_agent_matches_endpoint():
     return {"data": analysis.free_agent_matches(cached["data"], players_data.PLAYERS)}
 
 
+@app.get("/api/players/{player_id}/news")
+def player_news(player_id: int):
+    try:
+        provider = build_provider()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {"news": provider.get_player_news(player_id)}
+
+
 def _simulator_state_payload():
     slot = (db.get_cache("sim_slot") or {"data": None})["data"]
     if slot is None:

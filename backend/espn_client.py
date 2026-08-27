@@ -37,6 +37,10 @@ class LeagueProvider(ABC):
     def get_live_picks(self) -> list:
         ...
 
+    @abstractmethod
+    def get_player_news(self, player_id: int, size: int = 5) -> list:
+        ...
+
 
 class ESPNProvider(LeagueProvider):
     def __init__(self, league_id: int, year: int, espn_s2: Optional[str] = None, swid: Optional[str] = None):
@@ -65,6 +69,7 @@ class ESPNProvider(LeagueProvider):
     @staticmethod
     def _serialize_player(player) -> dict:
         return {
+            "player_id": player.playerId,
             "name": player.name,
             "position": player.position,
             "pro_team": player.proTeam,
@@ -138,6 +143,21 @@ class ESPNProvider(LeagueProvider):
                 "player_name": pick.playerName,
             }
             for pick in self._league.draft
+        ]
+
+    def get_player_news(self, player_id: int, size: int = 5) -> list:
+        try:
+            data = self._league.espn_request.get_player_news(playerId=player_id)
+        except Exception:
+            return []
+        feed = data.get("news", {}).get("feed", [])
+        return [
+            {
+                "headline": item.get("headline"),
+                "description": item.get("description"),
+                "published": item.get("published"),
+            }
+            for item in feed[:size]
         ]
 
 

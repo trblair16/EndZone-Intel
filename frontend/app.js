@@ -135,7 +135,10 @@ function renderRoster(data) {
     .map(
       (p) => `
       <tr>
-        <td>${p.name}${p.injury_status && p.injury_status !== 'ACTIVE' ? ` <span class="tag tag-injury">${p.injury_status}</span>` : ''}</td>
+        <td>${p.name}${p.injury_status && p.injury_status !== 'ACTIVE' ? ` <span class="tag tag-injury">${p.injury_status}</span>` : ''}
+          <button class="news-btn" data-player-id="${p.player_id}" data-news-id="news-roster-${p.player_id}">News</button>
+          <div class="news-panel hidden" id="news-roster-${p.player_id}"></div>
+        </td>
         <td>${p.position}</td>
         <td>${p.pro_team}</td>
         <td>${p.total_points}</td>
@@ -150,6 +153,47 @@ function renderRoster(data) {
        <tbody>${players}</tbody>
      </table>`
   );
+  wireNewsButtons();
+}
+
+async function loadPlayerNews(playerId, containerId) {
+  const el = document.getElementById(containerId);
+  el.textContent = 'Loading news...';
+  try {
+    const body = await apiGet(`/api/players/${playerId}/news`);
+    if (body.news.length === 0) {
+      el.innerHTML = emptyState('No recent news.');
+      return;
+    }
+    el.innerHTML = body.news
+      .map(
+        (n) => `
+        <div class="news-item">
+          <div class="news-headline">${n.headline}</div>
+          <div class="news-date">${n.published ? new Date(n.published).toLocaleDateString() : ''}</div>
+        </div>`
+      )
+      .join('');
+  } catch (err) {
+    el.innerHTML = emptyState(err.message);
+  }
+}
+
+function wireNewsButtons() {
+  document.querySelectorAll('.news-btn').forEach((btn) => {
+    btn.onclick = () => {
+      const playerId = btn.getAttribute('data-player-id');
+      const newsId = btn.getAttribute('data-news-id');
+      const panel = document.getElementById(newsId);
+      const wasHidden = panel.classList.contains('hidden');
+      if (wasHidden) {
+        panel.classList.remove('hidden');
+        loadPlayerNews(playerId, newsId);
+      } else {
+        panel.classList.add('hidden');
+      }
+    };
+  });
 }
 
 function renderMatchups(data) {
