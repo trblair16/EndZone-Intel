@@ -1,5 +1,16 @@
-const FLAG_CLASS = { injury: '#b5533f', committee: '#8a8f86', breakout: '#6ea86e', rookie: '#5b8bb0', scheme: '#8a6bb0' };
-const FLAG_LABEL = { injury: 'Injury history', committee: 'Committee risk', breakout: 'Breakout watch', rookie: 'Rookie / unproven', scheme: 'Scheme / role change risk' };
+const FLAG_CLASS = { injury: '#b5533f', committee: '#8a8f86', breakout: '#6ea86e', rookie: '#5b8bb0', scheme: '#8a6bb0', legal: '#d94f4f' };
+const FLAG_LABEL = { injury: 'Injury history', committee: 'Committee risk', breakout: 'Breakout watch', rookie: 'Rookie / unproven', scheme: 'Scheme / role change risk', legal: 'Legal risk' };
+const DELTA_SYMBOL = { riser: '▲', faller: '▼', confirmed: '●', as_expected: '' };
+const DELTA_CLASS = { riser: '#6ea86e', faller: '#b5533f', confirmed: '#5b8bb0', as_expected: '#8a8f86' };
+const DELTA_LABEL = { riser: 'Rising vs. hand-curated rank', faller: 'Falling vs. hand-curated rank', confirmed: 'Confirmed at expected ADP', as_expected: 'ADP as expected' };
+
+function adpBadge(p) {
+  if (!p.adp_round) return '';
+  const symbol = DELTA_SYMBOL[p.delta_flag] || '';
+  const color = DELTA_CLASS[p.delta_flag] || '#8a8f86';
+  const title = `ADP: Round ${p.adp_round}, pick ${p.adp_pick_overall}${p.delta_flag ? ' — ' + (DELTA_LABEL[p.delta_flag] || p.delta_flag) : ''}`;
+  return ` <span class="db-adp" style="color:${color}" title="${title}">ADP R${p.adp_round}${symbol ? ' ' + symbol : ''}</span>`;
+}
 
 let dbPlayers = [];
 let dbRecommendation = null;
@@ -74,7 +85,7 @@ function renderDbList() {
           <div class="db-rank">${p.rank}</div>
           <div>
             <div class="db-name">${star}${p.name}</div>
-            <div class="db-meta">${p.team}</div>
+            <div class="db-meta">${p.team}${adpBadge(p)}</div>
           </div>
           <div><span class="db-pos-badge">${p.pos === 'DST' ? 'D/ST' : p.pos}</span> ${flags}</div>
           <button class="db-draft-btn">${btnLabel}</button>
