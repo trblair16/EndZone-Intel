@@ -46,6 +46,10 @@ class LeagueProvider(ABC):
     def get_espn_rankings(self, size: int = 300) -> dict:
         ...
 
+    @abstractmethod
+    def get_weekly_matchups(self, week: int = 1) -> dict:
+        ...
+
 
 class ESPNProvider(LeagueProvider):
     def __init__(self, league_id: int, year: int, espn_s2: Optional[str] = None, swid: Optional[str] = None):
@@ -193,6 +197,18 @@ class ESPNProvider(LeagueProvider):
             if name and "rank" in ppr:
                 rankings[name] = ppr["rank"]
         return rankings
+
+    def get_weekly_matchups(self, week: int = 1) -> dict:
+        from espn_api.football.constant import PRO_TEAM_MAP
+
+        try:
+            schedule = self._league._get_pro_schedule(week)
+        except Exception:
+            return {}
+        return {
+            PRO_TEAM_MAP[team_id]: PRO_TEAM_MAP[opponent_id]
+            for team_id, (opponent_id, _date) in schedule.items()
+        }
 
 
 def build_provider() -> ESPNProvider:

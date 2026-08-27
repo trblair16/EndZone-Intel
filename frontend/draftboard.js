@@ -85,7 +85,7 @@ function renderDbList() {
           <div class="db-rank">${p.rank}</div>
           <div>
             <div class="db-name">${star}${p.name}</div>
-            <div class="db-meta">${p.team}${adpBadge(p)}</div>
+            <div class="db-meta">${p.team}${p.week1_opponent ? ` vs. ${p.week1_opponent}` : ''}${adpBadge(p)}</div>
           </div>
           <div><span class="db-pos-badge">${p.pos === 'DST' ? 'D/ST' : p.pos}</span> ${flags}</div>
           <button class="db-draft-btn">${btnLabel}</button>

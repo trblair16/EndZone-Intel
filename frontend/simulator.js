@@ -86,7 +86,7 @@ function renderSimBoard() {
           <div class="db-rank">${p.rank}</div>
           <div>
             <div class="db-name">${p.name}</div>
-            <div class="db-meta">${p.team}</div>
+            <div class="db-meta">${p.team}${p.week1_opponent ? ` vs. ${p.week1_opponent}` : ''}</div>
           </div>
           <div><span class="db-pos-badge">${p.pos === 'DST' ? 'D/ST' : p.pos}</span></div>
           <button class="db-draft-btn">Pick</button>
