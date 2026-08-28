@@ -4,12 +4,51 @@ const DELTA_SYMBOL = { riser: '▲', faller: '▼', confirmed: '●', as_expecte
 const DELTA_CLASS = { riser: '#6ea86e', faller: '#b5533f', confirmed: '#5b8bb0', as_expected: '#8a8f86' };
 const DELTA_LABEL = { riser: 'Rising vs. hand-curated rank', faller: 'Falling vs. hand-curated rank', confirmed: 'Confirmed at expected ADP', as_expected: 'ADP as expected' };
 
-function adpBadge(p) {
-  if (!p.adp_round) return '';
-  const symbol = DELTA_SYMBOL[p.delta_flag] || '';
-  const color = DELTA_CLASS[p.delta_flag] || '#8a8f86';
-  const title = `ADP: Round ${p.adp_round}, pick ${p.adp_pick_overall}${p.delta_flag ? ' — ' + (DELTA_LABEL[p.delta_flag] || p.delta_flag) : ''}`;
-  return ` <span class="db-adp" style="color:${color}" title="${title}">ADP R${p.adp_round}${symbol ? ' ' + symbol : ''}</span>`;
+// Drift threshold: below this many overall picks of difference between the
+// frozen July ADP and today's live ESPN rank, don't bother calling it out -
+// noise, not signal.
+const DRIFT_THRESHOLD = 15;
+
+function rankBadge(p) {
+  const hasAdp = Boolean(p.adp_round);
+  const hasLive = Number.isFinite(p.live_rank);
+  if (!hasAdp && !hasLive) return '';
+
+  const drift = hasAdp && hasLive ? p.live_rank - p.adp_pick_overall : null;
+  const driftIsMeaningful = drift !== null && Math.abs(drift) >= DRIFT_THRESHOLD;
+
+  const parts = [];
+  if (hasAdp) {
+    const symbol = DELTA_SYMBOL[p.delta_flag] || '';
+    const color = DELTA_CLASS[p.delta_flag] || '#8a8f86';
+    parts.push(`<span class="db-adp" style="color:${color}">ADP R${p.adp_round}${symbol ? ' ' + symbol : ''}</span>`);
+  }
+  if (hasLive) {
+    let liveColor = '#5b8bb0';
+    let driftText = '';
+    if (driftIsMeaningful) {
+      driftText = drift > 0 ? ` ↓${drift}` : ` ↑${Math.abs(drift)}`;
+      liveColor = drift > 0 ? '#b5533f' : '#6ea86e';
+    }
+    parts.push(`<span class="db-live-rank" style="color:${liveColor}">Live #${p.live_rank}${driftText}</span>`);
+  }
+
+  const tooltipLines = [`Your rank: ${p.rank} (tier ${p.tier})`];
+  if (hasAdp) {
+    tooltipLines.push(
+      `July ADP: Round ${p.adp_round}, pick ${p.adp_pick_overall}${p.delta_flag ? ' (' + (DELTA_LABEL[p.delta_flag] || p.delta_flag) + ' as of July)' : ''}`
+    );
+  }
+  if (hasLive) tooltipLines.push(`Live ESPN rank (this sync): ${p.live_rank}`);
+  if (driftIsMeaningful) {
+    tooltipLines.push(
+      drift > 0
+        ? `Market has fallen ~${drift} picks since the July snapshot`
+        : `Market has risen ~${Math.abs(drift)} picks since the July snapshot`
+    );
+  }
+
+  return ` <span class="db-rank-compare" title="${tooltipLines.join('\n')}">${parts.join(' · ')}</span>`;
 }
 
 let dbPlayers = [];
@@ -76,6 +115,9 @@ function renderDbList() {
       const flags = (p.flags || [])
         .map((f) => `<span title="${FLAG_LABEL[f]}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${FLAG_CLASS[f]}"></span>`)
         .join(' ');
+      const liveInjuryTag = p.live_injury_status
+        ? ` <span class="tag tag-injury" title="Live status from this sync, not the hand-curated flags">${p.live_injury_status}</span>`
+        : '';
       const star = p.target ? '<span class="db-star" title="Top target">&#9733;</span>' : (p.watch ? '<span class="db-watch-star" title="Watch">&#9734;</span>' : '');
       let btnLabel = 'Mark';
       if (p.state === 'mine') btnLabel = 'On My Team';
@@ -85,9 +127,9 @@ function renderDbList() {
           <div class="db-rank">${p.rank}</div>
           <div>
             <div class="db-name">${star}${p.name}</div>
-            <div class="db-meta">${p.team}${p.week1_opponent ? ` vs. ${p.week1_opponent}` : ''}${adpBadge(p)}</div>
+            <div class="db-meta">${p.team}${p.week1_opponent ? ` vs. ${p.week1_opponent}` : ''}${rankBadge(p)}</div>
           </div>
-          <div><span class="db-pos-badge">${p.pos === 'DST' ? 'D/ST' : p.pos}</span> ${flags}</div>
+          <div><span class="db-pos-badge">${p.pos === 'DST' ? 'D/ST' : p.pos}</span> ${flags}${liveInjuryTag}</div>
           <button class="db-draft-btn">${btnLabel}</button>
         </div>`;
     });

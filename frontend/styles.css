@@ -419,7 +419,9 @@ th {
 .db-rank { font-family: Consolas, monospace; color: var(--chalk-dim); font-size: 0.8rem; text-align: right; }
 .db-name { font-weight: 700; }
 .db-meta { font-size: 0.7rem; color: var(--chalk-dim); }
-.db-adp { font-weight: 700; margin-left: 0.3rem; }
+.db-adp { font-weight: 700; }
+.db-rank-compare { margin-left: 0.3rem; cursor: help; }
+.db-live-rank { font-weight: 700; }
 
 .db-pos-badge {
   font-size: 0.65rem;
