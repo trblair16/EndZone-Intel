@@ -175,6 +175,13 @@ class ESPNProvider(LeagueProvider):
         # pool without truncation. If it comes back thin, this needs
         # offset-based pagination the way get_free_agents does internally -
         # verify this against a real league before relying on it live.
+        #
+        # Same request also carries each player's live injuryStatus (a
+        # plain top-level field on ESPN's player JSON, confirmed via
+        # espn_api's own Player parsing) - grabbed here at no extra request
+        # cost so the full 169-player hand-curated board can show current
+        # injury status, not just whoever happens to be on a roster or in
+        # the free-agent pool.
         params = {"view": "kona_player_info"}
         headers = {
             "x-fantasy-filter": json.dumps({
@@ -193,9 +200,17 @@ class ESPNProvider(LeagueProvider):
         for entry in data.get("players", []):
             player = entry.get("player", {})
             name = player.get("fullName")
+            if not name:
+                continue
+            info = {}
             ppr = player.get("draftRanksByRankType", {}).get("PPR", {})
-            if name and "rank" in ppr:
-                rankings[name] = ppr["rank"]
+            if "rank" in ppr:
+                info["rank"] = ppr["rank"]
+            injury_status = player.get("injuryStatus")
+            if injury_status:
+                info["injury_status"] = injury_status
+            if info:
+                rankings[name] = info
         return rankings
 
     def get_weekly_matchups(self, week: int = 1) -> dict:

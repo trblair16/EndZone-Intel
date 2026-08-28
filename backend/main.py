@@ -116,8 +116,15 @@ def transactions():
 def _players_payload():
     draft_state = (db.get_cache("draft_state") or {"data": {}})["data"]
     week1_matchups = (db.get_cache("week1_matchups") or {"data": {}})["data"]
+    espn_rankings = (db.get_cache("espn_rankings") or {"data": {}})["data"]
     merged = [
-        {**p, "state": draft_state.get(p["name"], "available"), "week1_opponent": week1_matchups.get(p["team"])}
+        {
+            **p,
+            "state": draft_state.get(p["name"], "available"),
+            "week1_opponent": week1_matchups.get(p["team"]),
+            "live_rank": espn_rankings.get(p["name"], {}).get("rank"),
+            "live_injury_status": espn_rankings.get(p["name"], {}).get("injury_status"),
+        }
         for p in players_data.PLAYERS
     ]
     recommendation = analysis.compute_recommendation(players_data.PLAYERS, draft_state)
@@ -227,6 +234,8 @@ def _simulator_state_payload():
         if projection:
             for p in projection["available"]:
                 p["week1_opponent"] = week1_matchups.get(p["team"])
+                p["live_rank"] = espn_rankings.get(p["name"], {}).get("rank")
+                p["live_injury_status"] = espn_rankings.get(p["name"], {}).get("injury_status")
 
     return {
         "slot": slot,

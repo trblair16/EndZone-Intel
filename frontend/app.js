@@ -261,7 +261,7 @@ function renderRosterFlags(data) {
     return;
   }
   const rows = data
-    .map((p) => `<tr><td>${p.name}</td><td>${p.pos}</td><td>${p.flags.join(', ')}</td></tr>`)
+    .map((p) => `<tr><td>${p.name}</td><td>${p.pos}</td><td>${p.flags.join(', ')}${p.live_injury_status ? ` <span class="tag tag-injury">${p.live_injury_status}</span>` : ''}</td></tr>`)
     .join('');
   setBody(
     'roster-flags-body',

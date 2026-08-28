@@ -58,12 +58,27 @@ def cycle_draft_state(draft_state: dict, name: str) -> dict:
 
 
 def roster_risk_flags(roster: dict, players: list) -> list:
+    # Hand-curated flags in players.py are a June/July snapshot - a real
+    # roster player's own live injury_status (already pulled fresh from
+    # ESPN on every sync, see ESPNProvider._serialize_player) can surface
+    # an injury here even for a player with no hand-set flag at all, or
+    # one who isn't in the hand-curated board's 169 players in the first
+    # place.
     by_name = {p["name"]: p for p in players}
     flagged = []
     for rostered in roster.get("players", []):
         match = by_name.get(rostered["name"])
-        if match and match["flags"]:
-            flagged.append({"name": match["name"], "pos": match["pos"], "flags": match["flags"]})
+        flags = list(match["flags"]) if match and match["flags"] else []
+        live_status = rostered.get("injury_status")
+        if live_status and live_status != "ACTIVE" and "injury" not in flags:
+            flags.append("injury")
+        if flags:
+            flagged.append({
+                "name": rostered["name"],
+                "pos": match["pos"] if match else rostered.get("position"),
+                "flags": flags,
+                "live_injury_status": live_status if live_status != "ACTIVE" else None,
+            })
     return flagged
 
 
@@ -143,18 +158,18 @@ _EXPECTED_PICK_OVERRIDES = {
 
 
 def _expected_pick(player: dict, espn_rankings: dict = None) -> int:
-    # Real ADP overall-pick data (where we have it) reflects actual draft
-    # order more accurately than the hand-curated tier rank - the two
-    # diverge meaningfully for some players (e.g. Ashton Jeanty is rank 15
-    # in the hand-curated tiers but ADP has him going 10th overall). Prefer
-    # ADP when present, then ESPN's own live-synced PPR rank (refreshes
-    # automatically on every sync, backfilling the players we don't have
-    # researched ADP for), then the handful of known-bad rank overrides,
-    # then finally the raw hand-curated rank as a last resort.
+    # ESPN's own live-synced PPR rank (refreshed on every sync) now takes
+    # priority over the frozen July 2026 4for4 ADP pull baked into
+    # players.py's adp_pick_overall field - a live feed is more current
+    # than a two-month-old snapshot taken before preseason even wrapped.
+    # The frozen ADP is kept as a fallback for anyone ESPN's rank pull
+    # doesn't cover, then the handful of known-bad rank overrides, then
+    # finally the raw hand-curated rank as a last resort.
+    espn_entry = (espn_rankings or {}).get(player["name"])
+    if espn_entry and "rank" in espn_entry:
+        return espn_entry["rank"]
     if "adp_pick_overall" in player:
         return player["adp_pick_overall"]
-    if espn_rankings and player["name"] in espn_rankings:
-        return espn_rankings[player["name"]]
     if player["name"] in _EXPECTED_PICK_OVERRIDES:
         return _EXPECTED_PICK_OVERRIDES[player["name"]]
     return player["rank"]
