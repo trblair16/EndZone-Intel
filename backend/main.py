@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from . import analysis, db, league_settings
 from .bye_weeks import BYE_WEEKS
+from .sleeper_data import get_sleeper_market_data
 from . import players as players_data
 from .espn_client import build_provider
 from .sync import run_sync
@@ -117,6 +118,7 @@ def _players_payload():
     draft_state = (db.get_cache("draft_state") or {"data": {}})["data"]
     week1_matchups = (db.get_cache("week1_matchups") or {"data": {}})["data"]
     espn_rankings = (db.get_cache("espn_rankings") or {"data": {}})["data"]
+    sleeper_market = (db.get_cache("sleeper_market") or {"data": {}})["data"]
     merged = [
         {
             **p,
@@ -124,6 +126,8 @@ def _players_payload():
             "week1_opponent": week1_matchups.get(p["team"]),
             "live_rank": espn_rankings.get(p["name"], {}).get("rank"),
             "live_injury_status": espn_rankings.get(p["name"], {}).get("injury_status"),
+            "sleeper_rank": sleeper_market.get(p["name"], {}).get("search_rank"),
+            "sleeper_trending_add": sleeper_market.get(p["name"], {}).get("trending_add_count"),
         }
         for p in players_data.PLAYERS
     ]
@@ -208,6 +212,27 @@ def bye_weeks_endpoint():
     return {"data": analysis.bye_week_collisions(cached["data"].get("players", []), BYE_WEEKS)}
 
 
+@app.post("/api/sleeper/refresh")
+def sleeper_refresh():
+    market = get_sleeper_market_data()
+    db.set_cache("sleeper_market", market)
+    if not market:
+        raise HTTPException(
+            status_code=502,
+            detail="Sleeper returned no usable data - check your network connection and "
+            "try again. This doesn't touch your ESPN league data either way.",
+        )
+    return {"player_count": len(market)}
+
+
+@app.get("/api/sleeper/status")
+def sleeper_status():
+    cached = db.get_cache("sleeper_market")
+    if cached is None:
+        return {"player_count": 0, "updated_at": None}
+    return {"player_count": len(cached["data"]), "updated_at": cached["updated_at"]}
+
+
 def _simulator_state_payload():
     slot = (db.get_cache("sim_slot") or {"data": None})["data"]
     if slot is None:
@@ -217,6 +242,7 @@ def _simulator_state_payload():
     pick_index = (db.get_cache("sim_pick_index") or {"data": 0})["data"]
     espn_rankings = (db.get_cache("espn_rankings") or {"data": {}})["data"]
     week1_matchups = (db.get_cache("week1_matchups") or {"data": {}})["data"]
+    sleeper_market = (db.get_cache("sleeper_market") or {"data": {}})["data"]
     picks = analysis.snake_pick_numbers(slot)
     roster = list(sim_state.keys())
 
@@ -236,6 +262,8 @@ def _simulator_state_payload():
                 p["week1_opponent"] = week1_matchups.get(p["team"])
                 p["live_rank"] = espn_rankings.get(p["name"], {}).get("rank")
                 p["live_injury_status"] = espn_rankings.get(p["name"], {}).get("injury_status")
+                p["sleeper_rank"] = sleeper_market.get(p["name"], {}).get("search_rank")
+                p["sleeper_trending_add"] = sleeper_market.get(p["name"], {}).get("trending_add_count")
 
     return {
         "slot": slot,

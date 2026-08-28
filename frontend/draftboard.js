@@ -12,7 +12,8 @@ const DRIFT_THRESHOLD = 15;
 function rankBadge(p) {
   const hasAdp = Boolean(p.adp_round);
   const hasLive = Number.isFinite(p.live_rank);
-  if (!hasAdp && !hasLive) return '';
+  const hasSleeper = Number.isFinite(p.sleeper_rank);
+  if (!hasAdp && !hasLive && !hasSleeper) return '';
 
   const drift = hasAdp && hasLive ? p.live_rank - p.adp_pick_overall : null;
   const driftIsMeaningful = drift !== null && Math.abs(drift) >= DRIFT_THRESHOLD;
@@ -32,6 +33,10 @@ function rankBadge(p) {
     }
     parts.push(`<span class="db-live-rank" style="color:${liveColor}">Live #${p.live_rank}${driftText}</span>`);
   }
+  if (hasSleeper) {
+    const trendTag = p.sleeper_trending_add ? ` 🔥${p.sleeper_trending_add}` : '';
+    parts.push(`<span class="db-sleeper-rank">Sleeper #${p.sleeper_rank}${trendTag}</span>`);
+  }
 
   const tooltipLines = [`Your rank: ${p.rank} (tier ${p.tier})`];
   if (hasAdp) {
@@ -45,6 +50,11 @@ function rankBadge(p) {
       drift > 0
         ? `Market has fallen ~${drift} picks since the July snapshot`
         : `Market has risen ~${Math.abs(drift)} picks since the July snapshot`
+    );
+  }
+  if (hasSleeper) {
+    tooltipLines.push(
+      `Sleeper platform-wide rank: ${p.sleeper_rank}${p.sleeper_trending_add ? ` (${p.sleeper_trending_add} adds in the last 24h)` : ''}`
     );
   }
 
@@ -161,6 +171,43 @@ async function markDraftState(name) {
   renderDbList();
 }
 
+async function refreshSleeperData() {
+  const btn = document.getElementById('db-sleeper-refresh');
+  const statusEl = document.getElementById('db-sleeper-status');
+  btn.disabled = true;
+  btn.textContent = 'Refreshing…';
+  try {
+    const res = await fetch('/api/sleeper/refresh', { method: 'POST' });
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      const detail = body && body.detail;
+      throw new Error(typeof detail === 'string' ? detail : 'Sleeper refresh failed.');
+    }
+    statusEl.textContent = `Sleeper: ${body.player_count} players (just now)`;
+    dbLoaded = false;
+    await loadDraftBoard();
+  } catch (err) {
+    statusEl.textContent = `Sleeper: ${err.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Refresh Sleeper Data';
+  }
+}
+
+async function loadSleeperStatus() {
+  const statusEl = document.getElementById('db-sleeper-status');
+  try {
+    const status = await apiGet('/api/sleeper/status');
+    if (!status.updated_at) {
+      statusEl.textContent = 'Sleeper: not refreshed yet';
+    } else {
+      statusEl.textContent = `Sleeper: ${status.player_count} players (${new Date(status.updated_at).toLocaleString()})`;
+    }
+  } catch (err) {
+    statusEl.textContent = '';
+  }
+}
+
 async function pollLiveDraft() {
   const statusEl = document.getElementById('db-live-status');
   try {
@@ -193,6 +240,7 @@ function setLiveDraftMode(on) {
 }
 
 async function loadDraftBoard() {
+  loadSleeperStatus();
   if (dbLoaded) return;
   dbLoaded = true;
   try {
@@ -219,6 +267,7 @@ document.getElementById('db-toggle-targets').addEventListener('click', (e) => { 
 document.getElementById('db-toggle-watch').addEventListener('click', (e) => { dbWatchOnly = !dbWatchOnly; e.target.classList.toggle('active', dbWatchOnly); renderDbList(); });
 document.getElementById('db-hide-drafted').addEventListener('click', (e) => { dbHideDrafted = !dbHideDrafted; e.target.textContent = dbHideDrafted ? 'Show drafted' : 'Hide drafted'; renderDbList(); });
 document.getElementById('db-live-toggle').addEventListener('click', () => { setLiveDraftMode(!dbLiveOn); });
+document.getElementById('db-sleeper-refresh').addEventListener('click', refreshSleeperData);
 document.getElementById('db-reset').addEventListener('click', async () => {
   if (!confirm('Clear all drafted marks?')) return;
   const res = await fetch('/api/players/reset-draft-state', { method: 'POST' });

@@ -3,3 +3,4 @@ uvicorn[standard]
 espn_api
 python-dotenv
 pip-system-certs
+requests
